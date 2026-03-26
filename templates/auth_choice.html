@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anongram - Secure Messenger</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <div class="logo-icon">🔐</div>
+                <h1>Anongram</h1>
+                <p>Secure & Anonymous Messenger</p>
+            </div>
+            
+            <div class="auth-options">
+                <a href="{{ url_for('login') }}" class="auth-btn login-btn">
+                    <span class="btn-icon">📥</span>
+                    Login
+                </a>
+                <a href="{{ url_for('register') }}" class="auth-btn register-btn">
+                    <span class="btn-icon">📝</span>
+                    Register
+                </a>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">🛡️</span>
+                    <span>Anonymous</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🔒</span>
+                    <span>Secure</span>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">💬</span>
+                    <span>Groups & Channels</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

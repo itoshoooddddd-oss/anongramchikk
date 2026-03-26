@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Anongram</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="logo">
+                <div class="logo-icon">🔐</div>
+                <h1>Anongram</h1>
+                <p>Login to Your Account</p>
+            </div>
+            
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="login">Login</label>
+                    <input type="text" id="login" name="login" required placeholder="Enter your login">
+                </div>
+                
+                <div class="form-group">
+                    <label for="seedPhrases">Seed Phrases (13 words)</label>
+                    <textarea id="seedPhrases" name="seed_phrases" rows="4" required placeholder="Enter your 13 seed phrases separated by spaces"></textarea>
+                    <button type="button" onclick="pasteFromClipboard()" class="paste-btn">📋 Paste from Clipboard</button>
+                </div>
+                
+                <button type="submit" class="submit-btn">Login</button>
+            </form>
+            
+            <div id="loginError" class="error-message" style="display: none;"></div>
+            
+            <div class="back-link">
+                <a href="{{ url_for('index') }}">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

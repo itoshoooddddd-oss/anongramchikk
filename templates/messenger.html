@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anongram Messenger</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="messenger-page">
+    <div class="messenger-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-small">🔐 Anongram</div>
+                <div class="user-info">
+                    <span class="user-nickname">{{ user.nickname }}</span>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+                </div>
+            </div>
+            
+            <div class="sidebar-actions">
+                <button onclick="showNewChatModal()" class="action-btn">💬 New Chat</button>
+                <button onclick="showNewGroupModal()" class="action-btn">👥 New Group</button>
+                <button onclick="showNewChannelModal()" class="action-btn">📢 New Channel</button>
+                <button onclick="showAddContactModal()" class="action-btn">➕ Add Contact</button>
+            </div>
+            
+            <div class="chat-list">
+                <div class="chat-section">
+                    <h3>Contacts</h3>
+                    <div id="contactsList" class="chat-items">
+                        {% for contact in contacts %}
+                        <div class="chat-item" onclick="openChat('{{ contact.contact_nickname }}')">
+                            <div class="chat-avatar">👤</div>
+                            <div class="chat-info">
+                                <div class="chat-name">{{ contact.contact_nickname }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="chat-section">
+                    <h3>Groups</h3>
+                    <div id="groupsList" class="chat-items">
+                        {% for group_member in user_groups %}
+                        {% set group = group_member.group %}
+                        {% if not group.is_channel %}
+                        <div class="chat-item" onclick="openGroup({{ group.id }}, '{{ group.name }}')">
+                            <div class="chat-avatar">👥</div>
+                            <div class="chat-info">
+                                <div class="chat-name">{{ group.name }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="chat-section">
+                    <h3>Channels</h3>
+                    <div id="channelsList" class="chat-items">
+                        {% for group_member in user_groups %}
+                        {% set group = group_member.group %}
+                        {% if group.is_channel %}
+                        <div class="chat-item" onclick="openGroup({{ group.id }}, '{{ group.name }}')">
+                            <div class="chat-avatar">📢</div>
+                            <div class="chat-info">
+                                <div class="chat-name">{{ group.name }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-title">Select a chat to start messaging</div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <h2>Welcome to Anongram! 🔐</h2>
+                    <p>Select a contact, group, or channel from the sidebar to start messaging.</p>
+                    <p>Create new groups and channels or add contacts using the buttons on the left.</p>
+                </div>
+            </div>
+            
+            <div class="message-input-container" id="messageInputContainer" style="display: none;">
+                <input type="text" id="messageInput" class="message-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="send-btn">📤 Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for adding contacts -->
+    <div id="addContactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addContactModal')">&times;</span>
+            <h2>Add Contact</h2>
+            <input type="text" id="contactNickname" placeholder="Enter nickname" class="modal-input">
+            <button onclick="addContact()" class="modal-btn">Add Contact</button>
+            <div id="addContactResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Modal for creating group -->
+    <div id="newGroupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('newGroupModal')">&times;</span>
+            <h2>Create Group</h2>
+            <input type="text" id="groupName" placeholder="Enter group name" class="modal-input">
+            <button onclick="createGroup(false)" class="modal-btn">Create Group</button>
+            <div id="createGroupResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Modal for creating channel -->
+    <div id="newChannelModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('newChannelModal')">&times;</span>
+            <h2>Create Channel</h2>
+            <input type="text" id="channelName" placeholder="Enter channel name" class="modal-input">
+            <button onclick="createGroup(true)" class="modal-btn">Create Channel</button>
+            <div id="createChannelResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/messenger.js') }}"></script>
+</body>
+</html>
