@@ -331,6 +331,15 @@ body {
     color: var(--text-color);
 }
 
+.admin-badge {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-left: 8px;
+    display: inline-block;
+}
+
 .logout-btn {
     color: var(--danger-color);
     text-decoration: none;

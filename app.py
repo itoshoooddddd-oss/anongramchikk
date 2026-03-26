@@ -228,7 +228,9 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(80), unique=True, nullable=False)
     nickname = db.Column(db.String(80), unique=True, nullable=False)
-    seed_phrases = db.Column(db.Text, nullable=False)
+    seed_phrases = db.Column(db.Text, nullable=True)  # Made nullable for admin
+    password_hash = db.Column(db.String(256), nullable=True)  # For admin password
+    is_admin = db.Column(db.Boolean, default=False)  # Admin flag
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     contacts = db.relationship('Contact', backref='owner', lazy=True, foreign_keys='Contact.user_id')
@@ -313,22 +315,36 @@ def register():
 def login():
     if request.method == 'POST':
         data = request.get_json()
-        login = data.get('login', '').strip()
+        login_input = data.get('login', '').strip()
         seed_phrases = data.get('seed_phrases', '').strip().lower()
         
         # Find user by login
-        user = User.query.filter_by(login=login).first()
+        user = User.query.filter_by(login=login_input).first()
         
         if not user:
             return jsonify({'error': 'User not found'}), 404
         
-        # Verify seed phrases
+        # Check if admin (uses password instead of seed phrases)
+        if user.is_admin and user.password_hash:
+            if check_password_hash(user.password_hash, seed_phrases):
+                session['user_id'] = user.id
+                session['nickname'] = user.nickname
+                session['is_admin'] = user.is_admin
+                return jsonify({'success': True})
+            else:
+                return jsonify({'error': 'Invalid password'}), 401
+        
+        # Regular user - verify seed phrases
+        if not user.seed_phrases:
+            return jsonify({'error': 'Invalid authentication method'}), 400
+        
         user_seeds = user.seed_phrases.lower().split()
         input_seeds = seed_phrases.lower().split()
         
         if sorted(user_seeds) == sorted(input_seeds):
             session['user_id'] = user.id
             session['nickname'] = user.nickname
+            session['is_admin'] = user.is_admin
             return jsonify({'success': True})
         else:
             return jsonify({'error': 'Invalid seed phrases'}), 401
@@ -433,6 +449,14 @@ def send_message():
     if not content:
         return jsonify({'error': 'Message content required'}), 400
     
+    # Check if trying to send to Anongram News channel (only admin can post)
+    if group_id:
+        group = Group.query.get(group_id)
+        if group and group.is_channel and group.name == 'Anongram News':
+            user = User.query.get(session['user_id'])
+            if not user.is_admin:
+                return jsonify({'error': 'Only admin can post to Anongram News'}), 403
+    
     message = Message(
         content=content,
         sender_id=session['user_id'],
@@ -484,4 +508,37 @@ def logout():
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
+        
+        # Create admin user if not exists
+        admin = User.query.filter_by(login='owwner').first()
+        if not admin:
+            from werkzeug.security import generate_password_hash
+            admin = User(
+                login='owwner',
+                nickname='Admin',
+                password_hash=generate_password_hash('musodzhonov'),
+                is_admin=True,
+                seed_phrases=None
+            )
+            db.session.add(admin)
+            db.session.commit()
+            print('Admin user created! Login: owwner, Password: musodzhonov')
+        
+        # Create Anongram News channel if not exists
+        news_channel = Group.query.filter_by(name='Anongram News', is_channel=True).first()
+        if not news_channel:
+            news_channel = Group(
+                name='Anongram News',
+                creator_id=admin.id,
+                is_channel=True
+            )
+            db.session.add(news_channel)
+            db.session.commit()
+            
+            # Add admin as member
+            member = GroupMember(user_id=admin.id, group_id=news_channel.id)
+            db.session.add(member)
+            db.session.commit()
+            print('Anongram News channel created!')
+    
     app.run(debug=True, host='0.0.0.0', port=5000)
