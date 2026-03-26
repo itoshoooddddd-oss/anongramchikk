@@ -496,6 +496,11 @@ def add_reaction():
     if not message_id or not emoji:
         return jsonify({'error': 'Message ID and emoji required'}), 400
     
+    # Check if message exists
+    message = Message.query.get(message_id)
+    if not message:
+        return jsonify({'error': 'Message not found'}), 404
+    
     # Check if reaction already exists
     existing = Reaction.query.filter_by(
         message_id=message_id,
@@ -588,7 +593,11 @@ def get_messages():
             emoji = r.emoji
             if emoji not in reactions_list:
                 reactions_list[emoji] = []
-            reactions_list[emoji].append(r.user.nickname)
+            # Handle case where user might be deleted
+            if r.user:
+                reactions_list[emoji].append(r.user.nickname)
+            else:
+                reactions_list[emoji].append('Deleted User')
         
         result.append({
             'id': msg.id,
