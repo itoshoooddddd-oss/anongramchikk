@@ -15,7 +15,7 @@
                 <p>Login to Your Account</p>
             </div>
             
-            <form id="loginForm" class="auth-form">
+            <form id="loginForm" class="auth-form" onsubmit="return false;">
                 <div class="form-group">
                     <label for="login">Login</label>
                     <input type="text" id="login" name="login" required placeholder="Enter your login">
@@ -27,7 +27,7 @@
                     <button type="button" onclick="pasteFromClipboard()" class="paste-btn">📋 Paste from Clipboard</button>
                 </div>
                 
-                <button type="submit" class="submit-btn">Login</button>
+                <button type="submit" class="submit-btn" onclick="handleLogin()">Login</button>
             </form>
             
             <div id="loginError" class="error-message" style="display: none;"></div>
@@ -39,5 +39,44 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <script>
+        async function handleLogin() {
+            const loginInput = document.getElementById('login').value.trim();
+            const seedPhrasesInput = document.getElementById('seedPhrases').value.trim();
+            const errorDiv = document.getElementById('loginError');
+            
+            if (!loginInput || !seedPhrasesInput) {
+                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        login: loginInput, 
+                        seed_phrases: seedPhrasesInput 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.location.href = '/messenger';
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed. Please check your credentials.';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorDiv.textContent = 'Connection error. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+    </script>
 </body>
 </html>
