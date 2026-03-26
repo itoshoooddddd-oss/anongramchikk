@@ -1,6 +1,7 @@
 let currentChat = null;
 let currentGroupId = null;
 let currentRecipientId = null;
+let selectedMessageId = null; // For reactions
 
 // Modal functions
 function showAddContactModal() {
@@ -28,6 +29,86 @@ function closeModal(modalId) {
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.style.display = 'none';
+    }
+    // Hide reaction picker if clicking outside
+    if (!event.target.closest('.reaction-picker') && !event.target.closest('.message')) {
+        const picker = document.getElementById('reactionPicker');
+        if (picker) picker.style.display = 'none';
+    }
+}
+
+// Group menu functions
+function showGroupMenu(event, groupId, groupName) {
+    document.getElementById('currentGroupId').value = groupId;
+    document.getElementById('groupMenuTitle').textContent = groupName + ' - Settings';
+    document.getElementById('groupMenuModal').style.display = 'block';
+}
+
+async function editGroupName() {
+    const groupId = document.getElementById('currentGroupId').value;
+    const newName = prompt('Enter new group name:');
+    
+    if (!newName || newName.trim() === '') return;
+    
+    try {
+        const response = await fetch(`/api/groups/${groupId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name: newName.trim() })
+        });
+        
+        const data = await response.json();
+        const resultDiv = document.getElementById('groupMenuResult');
+        
+        if (response.ok && data.success) {
+            resultDiv.textContent = 'Group renamed successfully!';
+            resultDiv.style.color = 'var(--success-color)';
+            setTimeout(() => {
+                closeModal('groupMenuModal');
+                location.reload();
+            }, 1000);
+        } else {
+            resultDiv.textContent = data.error || 'Failed to rename group';
+            resultDiv.style.color = 'var(--danger-color)';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'An error occurred';
+        resultDiv.style.color = 'var(--danger-color)';
+    }
+}
+
+async function deleteGroupConfirm() {
+    const confirmed = confirm('Are you sure you want to delete this group? This cannot be undone.');
+    if (!confirmed) return;
+    
+    const groupId = document.getElementById('currentGroupId').value;
+    
+    try {
+        const response = await fetch(`/api/groups/${groupId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        const resultDiv = document.getElementById('groupMenuResult');
+        
+        if (response.ok && data.success) {
+            resultDiv.textContent = 'Group deleted successfully!';
+            resultDiv.style.color = 'var(--success-color)';
+            setTimeout(() => {
+                closeModal('groupMenuModal');
+                location.reload();
+            }, 1000);
+        } else {
+            resultDiv.textContent = data.error || 'Failed to delete group';
+            resultDiv.style.color = 'var(--danger-color)';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'An error occurred';
+        resultDiv.style.color = 'var(--danger-color)';
     }
 }
 
@@ -210,11 +291,41 @@ function displayMessages(messages) {
         const isSent = msg.sender_nickname === '{{ user.nickname }}';
         messageDiv.classList.add(isSent ? 'sent' : 'received');
         
+        // Add contextmenu event for reactions (right-click on PC)
+        messageDiv.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            showReactionPicker(e, msg.id);
+        });
+        
+        // Add long press for mobile
+        let pressTimer;
+        messageDiv.addEventListener('touchstart', function(e) {
+            pressTimer = setTimeout(() => {
+                showReactionPicker(e, msg.id);
+            }, 500);
+        });
+        messageDiv.addEventListener('touchend', function() {
+            clearTimeout(pressTimer);
+        });
+        messageDiv.addEventListener('touchmove', function() {
+            clearTimeout(pressTimer);
+        });
+        
         let html = '';
         if (currentGroupId) {
-            html += `<div class="message-sender">${msg.sender_nickname}</div>`;
+            html += `<div class="message-sender">${escapeHtml(msg.sender_nickname)}</div>`;
         }
         html += `<div class="message-content">${escapeHtml(msg.content)}</div>`;
+        
+        // Display reactions
+        if (msg.reactions && Object.keys(msg.reactions).length > 0) {
+            html += '<div class="message-reactions">';
+            for (const [emoji, users] of Object.entries(msg.reactions)) {
+                html += `<span class="reaction-badge" title="${users.join(', ')}">${emoji} ${users.length}</span>`;
+            }
+            html += '</div>';
+        }
+        
         html += `<div class="message-time">${formatTime(msg.timestamp)}</div>`;
         
         messageDiv.innerHTML = html;
@@ -223,6 +334,49 @@ function displayMessages(messages) {
     
     // Scroll to bottom
     container.scrollTop = container.scrollHeight;
+}
+
+// Show reaction picker
+function showReactionPicker(event, messageId) {
+    selectedMessageId = messageId;
+    const picker = document.getElementById('reactionPicker');
+    
+    // Position picker near the click/touch
+    const rect = event.target.getBoundingClientRect();
+    picker.style.display = 'flex';
+    picker.style.left = Math.min(rect.left + window.scrollX, window.innerWidth - 200) + 'px';
+    picker.style.top = Math.min(rect.bottom + window.scrollY, window.innerHeight - 100) + 'px';
+}
+
+// Add reaction to message
+async function addReaction(emoji) {
+    if (!selectedMessageId) return;
+    
+    try {
+        const response = await fetch('/api/messages/react', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message_id: selectedMessageId,
+                emoji: emoji
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            // Hide picker and reload messages
+            document.getElementById('reactionPicker').style.display = 'none';
+            await loadMessages();
+        } else {
+            alert(data.error || 'Failed to add reaction');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add reaction');
+    }
 }
 
 // Send message

@@ -46,11 +46,14 @@
                         {% for group_member in user_groups %}
                         {% set group = group_member.group %}
                         {% if not group.is_channel %}
-                        <div class="chat-item" onclick="openGroup({{ group.id }}, '{{ group.name }}')">
+                        <div class="chat-item chat-item-group" data-group-id="{{ group.id }}" data-group-name="{{ group.name }}">
                             <div class="chat-avatar">👥</div>
                             <div class="chat-info">
                                 <div class="chat-name">{{ group.name }}</div>
                             </div>
+                            {% if group.creator_id == user.id %}
+                            <div class="group-menu-btn" onclick="event.stopPropagation(); showGroupMenu(event, {{ group.id }}, '{{ group.name }}')">⋮</div>
+                            {% endif %}
                         </div>
                         {% endif %}
                         {% endfor %}
@@ -63,11 +66,14 @@
                         {% for group_member in user_groups %}
                         {% set group = group_member.group %}
                         {% if group.is_channel %}
-                        <div class="chat-item" onclick="openGroup({{ group.id }}, '{{ group.name }}')">
+                        <div class="chat-item chat-item-group" data-group-id="{{ group.id }}" data-group-name="{{ group.name }}">
                             <div class="chat-avatar">📢</div>
                             <div class="chat-info">
                                 <div class="chat-name">{{ group.name }}</div>
                             </div>
+                            {% if group.creator_id == user.id %}
+                            <div class="group-menu-btn" onclick="event.stopPropagation(); showGroupMenu(event, {{ group.id }}, '{{ group.name }}')">⋮</div>
+                            {% endif %}
                         </div>
                         {% endif %}
                         {% endfor %}
@@ -128,6 +134,30 @@
             <button onclick="createGroup(true)" class="modal-btn">Create Channel</button>
             <div id="createChannelResult" class="modal-result"></div>
         </div>
+    </div>
+    
+    <!-- Group Management Menu Modal -->
+    <div id="groupMenuModal" class="modal">
+        <div class="modal-content modal-small">
+            <span class="close" onclick="closeModal('groupMenuModal')">&times;</span>
+            <h2 id="groupMenuTitle">Group Settings</h2>
+            <input type="hidden" id="currentGroupId">
+            <div class="group-menu-options">
+                <button onclick="editGroupName()" class="menu-option-btn">✏️ Rename</button>
+                <button onclick="deleteGroupConfirm()" class="menu-option-btn menu-option-danger">🗑️ Delete Group</button>
+            </div>
+            <div id="groupMenuResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Reaction Picker -->
+    <div id="reactionPicker" class="reaction-picker">
+        <div class="reaction-emoji" onclick="addReaction('👍')">👍</div>
+        <div class="reaction-emoji" onclick="addReaction('❤️')">❤️</div>
+        <div class="reaction-emoji" onclick="addReaction('😂')">😂</div>
+        <div class="reaction-emoji" onclick="addReaction('😮')">😮</div>
+        <div class="reaction-emoji" onclick="addReaction('😢')">😢</div>
+        <div class="reaction-emoji" onclick="addReaction('😡')">😡</div>
     </div>
     
     <script src="{{ url_for('static', filename='js/messenger.js') }}"></script>

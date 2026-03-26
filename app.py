@@ -265,6 +265,17 @@ class Message(db.Model):
     group_id = db.Column(db.Integer, db.ForeignKey('group.id'), nullable=True)
     recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    reactions = db.relationship('Reaction', backref='message', lazy=True, cascade='all, delete-orphan')
+
+class Reaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    emoji = db.Column(db.String(10), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message_id = db.Column(db.Integer, db.ForeignKey('message.id'), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    user = db.relationship('User', backref='reactions')
 
 def generate_seed_phrases():
     """Generate 13 random seed phrases"""
@@ -338,16 +349,21 @@ def login():
         if not user.seed_phrases:
             return jsonify({'error': 'Invalid authentication method'}), 400
         
-        user_seeds = user.seed_phrases.lower().split()
-        input_seeds = seed_phrases.lower().split()
+        # Normalize both seed phrase lists (handle extra spaces, newlines)
+        user_seeds = [s.strip().lower() for s in user.seed_phrases.split() if s.strip()]
+        input_seeds = [s.strip().lower() for s in seed_phrases.split() if s.strip()]
         
-        if sorted(user_seeds) == sorted(input_seeds):
+        # Check if all seeds match (order doesn't matter)
+        if len(user_seeds) == len(input_seeds) and sorted(user_seeds) == sorted(input_seeds):
             session['user_id'] = user.id
             session['nickname'] = user.nickname
             session['is_admin'] = user.is_admin
             return jsonify({'success': True})
         else:
-            return jsonify({'error': 'Invalid seed phrases'}), 401
+            # Show helpful error with expected vs provided count
+            return jsonify({
+                'error': f'Invalid seed phrases. Expected {len(user_seeds)} words, got {len(input_seeds)}. Please copy all words from registration.'
+            }), 401
     
     return render_template('login.html')
 
@@ -468,6 +484,81 @@ def send_message():
     
     return jsonify({'success': True, 'message_id': message.id})
 
+@app.route('/api/messages/react', methods=['POST'])
+def add_reaction():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    message_id = data.get('message_id')
+    emoji = data.get('emoji')
+    
+    if not message_id or not emoji:
+        return jsonify({'error': 'Message ID and emoji required'}), 400
+    
+    # Check if reaction already exists
+    existing = Reaction.query.filter_by(
+        message_id=message_id,
+        user_id=session['user_id'],
+        emoji=emoji
+    ).first()
+    
+    if existing:
+        # Remove reaction if it exists (toggle)
+        db.session.delete(existing)
+        db.session.commit()
+        return jsonify({'success': True, 'action': 'removed'})
+    else:
+        # Add new reaction
+        reaction = Reaction(
+            message_id=message_id,
+            user_id=session['user_id'],
+            emoji=emoji
+        )
+        db.session.add(reaction)
+        db.session.commit()
+        return jsonify({'success': True, 'action': 'added'})
+
+@app.route('/api/groups/<int:group_id>', methods=['PUT'])
+def update_group(group_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+    
+    # Only creator can edit
+    if group.creator_id != session['user_id']:
+        return jsonify({'error': 'Only creator can edit group'}), 403
+    
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    
+    if name:
+        group.name = name
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'error': 'Name required'}), 400
+
+@app.route('/api/groups/<int:group_id>', methods=['DELETE'])
+def delete_group(group_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+    
+    # Only creator can delete
+    if group.creator_id != session['user_id']:
+        return jsonify({'error': 'Only creator can delete group'}), 403
+    
+    db.session.delete(group)
+    db.session.commit()
+    return jsonify({'success': True})
+
 @app.route('/api/messages/get', methods=['POST'])
 def get_messages():
     if 'user_id' not in session:
@@ -490,11 +581,21 @@ def get_messages():
     result = []
     for msg in messages:
         sender = User.query.get(msg.sender_id)
+        # Get reactions for this message
+        msg_reactions = Reaction.query.filter_by(message_id=msg.id).all()
+        reactions_list = {}
+        for r in msg_reactions:
+            emoji = r.emoji
+            if emoji not in reactions_list:
+                reactions_list[emoji] = []
+            reactions_list[emoji].append(r.user.nickname)
+        
         result.append({
             'id': msg.id,
             'content': msg.content,
             'sender_nickname': sender.nickname if sender else 'Unknown',
-            'timestamp': msg.timestamp.isoformat()
+            'timestamp': msg.timestamp.isoformat(),
+            'reactions': reactions_list
         })
     
     return jsonify(result)

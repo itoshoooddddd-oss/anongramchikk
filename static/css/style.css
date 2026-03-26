@@ -418,6 +418,27 @@ body {
     transform: translateX(5px);
 }
 
+.chat-item-group {
+    position: relative;
+}
+
+.group-menu-btn {
+    font-size: 24px;
+    color: var(--text-secondary);
+    padding: 0 8px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.chat-item-group:hover .group-menu-btn {
+    opacity: 1;
+}
+
+.group-menu-btn:hover {
+    color: var(--primary-color);
+}
+
 .chat-avatar {
     width: 45px;
     height: 45px;
@@ -527,6 +548,54 @@ body {
     text-align: right;
 }
 
+.message-reactions {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.reaction-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.reaction-badge:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+/* Reaction Picker */
+.reaction-picker {
+    display: none;
+    position: absolute;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    padding: 8px;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    animation: slideUp 0.2s ease;
+}
+
+.reaction-emoji {
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.reaction-emoji:hover {
+    background: var(--bg-tertiary);
+    transform: scale(1.3);
+}
+
 .message-input-container {
     padding: 20px;
     background: var(--bg-secondary);
@@ -589,6 +658,44 @@ body {
     box-shadow: var(--shadow);
     position: relative;
     animation: slideUp 0.3s ease;
+}
+
+.modal-small {
+    max-width: 300px;
+}
+
+.group-menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.menu-option-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--bg-tertiary);
+    color: var(--text-color);
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+}
+
+.menu-option-btn:hover {
+    background: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.menu-option-danger {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger-color);
+}
+
+.menu-option-danger:hover {
+    background: var(--danger-color);
+    color: white;
 }
 
 .close {
