@@ -25,6 +25,11 @@
                 <button onclick="showAddContactModal()" class="action-btn">➕ Add Contact</button>
             </div>
             
+            <!-- Search Channels -->
+            <div class="search-container">
+                <input type="text" id="channelSearchInput" placeholder="🔍 Search channels..." class="search-input" oninput="searchChannels()">
+            </div>
+            
             <div class="chat-list">
                 <div class="chat-section">
                     <h3>Contacts</h3>
@@ -63,21 +68,10 @@
                 <div class="chat-section">
                     <h3>Channels</h3>
                     <div id="channelsList" class="chat-items">
-                        {% for group_member in user_groups %}
-                        {% set group = group_member.group %}
-                        {% if group.is_channel %}
-                        <div class="chat-item chat-item-group" data-group-id="{{ group.id }}" data-group-name="{{ group.name }}">
-                            <div class="chat-avatar">📢</div>
-                            <div class="chat-info">
-                                <div class="chat-name">{{ group.name }}</div>
-                            </div>
-                            {% if group.creator_id == user.id %}
-                            <div class="group-menu-btn" onclick="event.stopPropagation(); showGroupMenu(event, {{ group.id }}, '{{ group.name }}')">⋮</div>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
+                        <!-- Channels will be listed here -->
                     </div>
+                    <!-- Search Results -->
+                    <div id="channelSearchResults" class="search-results" style="display: none;"></div>
                 </div>
             </div>
         </div>

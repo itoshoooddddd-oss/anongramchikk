@@ -37,6 +37,97 @@ window.onclick = function(event) {
     }
 }
 
+// Search channels
+async function searchChannels() {
+    const query = document.getElementById('channelSearchInput').value.trim();
+    const resultsDiv = document.getElementById('channelSearchResults');
+    
+    if (query.length < 2) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/channels/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query })
+        });
+        
+        const channels = await response.json();
+        
+        if (channels.length === 0) {
+            resultsDiv.innerHTML = '<div class="search-no-results">No channels found</div>';
+        } else {
+            resultsDiv.innerHTML = channels.map(channel => `
+                <div class="search-result-item">
+                    <div class="chat-avatar">📢</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(channel.name)}</div>
+                        <div class="chat-subtitle">👥 ${channel.member_count} members</div>
+                    </div>
+                    ${channel.is_member 
+                        ? '<button class="join-btn joined">Joined</button>' 
+                        : `<button class="join-btn" onclick="joinChannel(${channel.id})">Join</button>`
+                    }
+                </div>
+            `).join('');
+        }
+        
+        resultsDiv.style.display = 'block';
+    } catch (error) {
+        console.error('Error searching channels:', error);
+    }
+}
+
+// Join channel
+async function joinChannel(channelId) {
+    try {
+        const response = await fetch(`/api/groups/${channelId}/join`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            alert('Joined channel successfully!');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to join channel');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to join channel');
+    }
+}
+
+// Leave channel
+async function leaveChannel(channelId, channelName) {
+    const confirmed = confirm(`Leave channel "${channelName}"?`);
+    if (!confirmed) return;
+    
+    try {
+        const response = await fetch(`/api/groups/${channelId}/leave`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            alert('Left channel successfully!');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to leave channel');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to leave channel');
+    }
+}
+
 // Group menu functions
 function showGroupMenu(event, groupId, groupName) {
     document.getElementById('currentGroupId').value = groupId;

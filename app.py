@@ -314,6 +314,13 @@ def register():
         db.session.add(user)
         db.session.commit()
         
+        # Auto-join Anongram News channel
+        news_channel = Group.query.filter_by(name='Anongram News', is_channel=True).first()
+        if news_channel:
+            member = GroupMember(user_id=user.id, group_id=news_channel.id)
+            db.session.add(member)
+            db.session.commit()
+        
         return jsonify({
             'success': True,
             'seed_phrases': seed_phrases,
@@ -563,6 +570,89 @@ def delete_group(group_id):
     db.session.delete(group)
     db.session.commit()
     return jsonify({'success': True})
+
+@app.route('/api/groups/<int:group_id>/join', methods=['POST'])
+def join_group(group_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+    
+    # Check if already member
+    existing = GroupMember.query.filter_by(
+        user_id=session['user_id'],
+        group_id=group_id
+    ).first()
+    
+    if existing:
+        return jsonify({'error': 'Already a member'}), 400
+    
+    member = GroupMember(user_id=session['user_id'], group_id=group_id)
+    db.session.add(member)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/groups/<int:group_id>/leave', methods=['POST'])
+def leave_group(group_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    group = Group.query.get(group_id)
+    if not group:
+        return jsonify({'error': 'Group not found'}), 404
+    
+    # Don't allow leaving Anongram News (it's mandatory)
+    if group.name == 'Anongram News' and group.is_channel:
+        return jsonify({'error': 'Cannot leave Anongram News channel'}), 400
+    
+    member = GroupMember.query.filter_by(
+        user_id=session['user_id'],
+        group_id=group_id
+    ).first()
+    
+    if not member:
+        return jsonify({'error': 'Not a member'}), 400
+    
+    db.session.delete(member)
+    db.session.commit()
+    return jsonify({'success': True})
+
+@app.route('/api/channels/search', methods=['POST'])
+def search_channels():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    query = data.get('query', '').strip()
+    
+    if not query:
+        return jsonify([])
+    
+    # Search for public channels (not owned by user)
+    channels = Group.query.filter(
+        Group.is_channel == True,
+        Group.name.ilike(f'%{query}%'),
+        Group.id != Group.query.filter_by(name='Anongram News').first().id if Group.query.filter_by(name='Anongram News').first() else True
+    ).limit(20).all()
+    
+    results = []
+    for channel in channels:
+        # Check if user is already member
+        is_member = GroupMember.query.filter_by(
+            user_id=session['user_id'],
+            group_id=channel.id
+        ).first() is not None
+        
+        results.append({
+            'id': channel.id,
+            'name': channel.name,
+            'is_member': is_member,
+            'member_count': GroupMember.query.filter_by(group_id=channel.id).count()
+        })
+    
+    return jsonify(results)
 
 @app.route('/api/messages/get', methods=['POST'])
 def get_messages():
