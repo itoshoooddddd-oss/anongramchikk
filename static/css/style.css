@@ -433,6 +433,15 @@ body {
     padding: 20px;
 }
 
+.search-category-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 15px 0 10px 0;
+    padding-left: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 .action-btn {
     padding: 10px;
     border: none;

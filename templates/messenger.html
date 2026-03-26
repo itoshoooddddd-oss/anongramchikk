@@ -25,9 +25,10 @@
                 <button onclick="showAddContactModal()" class="action-btn">➕ Add Contact</button>
             </div>
             
-            <!-- Search Channels -->
+            <!-- Universal Search -->
             <div class="search-container">
-                <input type="text" id="channelSearchInput" placeholder="🔍 Search channels..." class="search-input" oninput="searchChannels()">
+                <input type="text" id="universalSearchInput" placeholder="🔍 Search channels, groups, users..." class="search-input" oninput="universalSearch()">
+                <div id="universalSearchResults" class="search-results" style="display: none;"></div>
             </div>
             
             <div class="chat-list">
@@ -68,10 +69,8 @@
                 <div class="chat-section">
                     <h3>Channels</h3>
                     <div id="channelsList" class="chat-items">
-                        <!-- Channels will be listed here -->
+                        <!-- All channels will be loaded dynamically -->
                     </div>
-                    <!-- Search Results -->
-                    <div id="channelSearchResults" class="search-results" style="display: none;"></div>
                 </div>
             </div>
         </div>

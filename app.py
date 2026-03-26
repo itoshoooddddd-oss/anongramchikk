@@ -630,11 +630,10 @@ def search_channels():
     if not query:
         return jsonify([])
     
-    # Search for public channels (not owned by user)
+    # Search for ALL channels (including Anongram News)
     channels = Group.query.filter(
         Group.is_channel == True,
-        Group.name.ilike(f'%{query}%'),
-        Group.id != Group.query.filter_by(name='Anongram News').first().id if Group.query.filter_by(name='Anongram News').first() else True
+        Group.name.ilike(f'%{query}%')
     ).limit(20).all()
     
     results = []
@@ -650,6 +649,72 @@ def search_channels():
             'name': channel.name,
             'is_member': is_member,
             'member_count': GroupMember.query.filter_by(group_id=channel.id).count()
+        })
+    
+    return jsonify(results)
+
+@app.route('/api/users/search', methods=['POST'])
+def search_users():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    query = data.get('query', '').strip()
+    
+    if not query:
+        return jsonify([])
+    
+    # Search for users by nickname (excluding self)
+    users = User.query.filter(
+        User.nickname.ilike(f'%{query}%'),
+        User.id != session['user_id']
+    ).limit(20).all()
+    
+    results = []
+    for user in users:
+        # Check if already in contacts
+        is_contact = Contact.query.filter_by(
+            user_id=session['user_id'],
+            contact_nickname=user.nickname
+        ).first() is not None
+        
+        results.append({
+            'nickname': user.nickname,
+            'is_contact': is_contact
+        })
+    
+    return jsonify(results)
+
+@app.route('/api/groups/search', methods=['POST'])
+def search_groups():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    data = request.get_json()
+    query = data.get('query', '').strip()
+    
+    if not query:
+        return jsonify([])
+    
+    # Search for groups (not channels)
+    groups = Group.query.filter(
+        Group.is_channel == False,
+        Group.name.ilike(f'%{query}%')
+    ).limit(20).all()
+    
+    results = []
+    for group in groups:
+        # Check if user is already member
+        is_member = GroupMember.query.filter_by(
+            user_id=session['user_id'],
+            group_id=group.id
+        ).first() is not None
+        
+        results.append({
+            'id': group.id,
+            'name': group.name,
+            'is_member': is_member,
+            'member_count': GroupMember.query.filter_by(group_id=group.id).count()
         })
     
     return jsonify(results)

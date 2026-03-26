@@ -83,6 +83,153 @@ async function searchChannels() {
     }
 }
 
+// Universal search (channels, groups, users)
+async function universalSearch() {
+    const query = document.getElementById('universalSearchInput').value.trim();
+    const resultsDiv = document.getElementById('universalSearchResults');
+    
+    if (query.length < 2) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    try {
+        // Search for channels
+        const channelsResponse = await fetch('/api/channels/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const channels = await channelsResponse.json();
+        
+        // Search for groups
+        const groupsResponse = await fetch('/api/groups/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const groups = await groupsResponse.json();
+        
+        // Search for users
+        const usersResponse = await fetch('/api/users/search', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const users = await usersResponse.json();
+        
+        let html = '';
+        
+        // Display channels
+        if (channels.length > 0) {
+            html += '<div class="search-category-title">📢 Channels</div>';
+            html += channels.map(channel => `
+                <div class="search-result-item">
+                    <div class="chat-avatar">📢</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(channel.name)}</div>
+                        <div class="chat-subtitle">👥 ${channel.member_count} members</div>
+                    </div>
+                    ${channel.is_member 
+                        ? '<button class="join-btn joined">Joined</button>' 
+                        : `<button class="join-btn" onclick="joinChannel(${channel.id})">Join</button>`
+                    }
+                </div>
+            `).join('');
+        }
+        
+        // Display groups
+        if (groups.length > 0) {
+            html += '<div class="search-category-title">👥 Groups</div>';
+            html += groups.map(group => `
+                <div class="search-result-item">
+                    <div class="chat-avatar">👥</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(group.name)}</div>
+                        <div class="chat-subtitle">👥 ${group.member_count} members</div>
+                    </div>
+                    ${group.is_member 
+                        ? '<button class="join-btn joined">Joined</button>' 
+                        : `<button class="join-btn" onclick="joinGroup(${group.id})">Join</button>`
+                    }
+                </div>
+            `).join('');
+        }
+        
+        // Display users
+        if (users.length > 0) {
+            html += '<div class="search-category-title">👤 Users</div>';
+            html += users.map(user => `
+                <div class="search-result-item">
+                    <div class="chat-avatar">👤</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(user.nickname)}</div>
+                        <div class="chat-subtitle">User</div>
+                    </div>
+                    ${user.is_contact 
+                        ? '<button class="join-btn joined">Contact</button>' 
+                        : `<button class="join-btn" onclick="addContactByNickname('${escapeHtml(user.nickname)}')">Add</button>`
+                    }
+                </div>
+            `).join('');
+        }
+        
+        if (channels.length === 0 && groups.length === 0 && users.length === 0) {
+            html = '<div class="search-no-results">No results found</div>';
+        }
+        
+        resultsDiv.innerHTML = html;
+        resultsDiv.style.display = 'block';
+    } catch (error) {
+        console.error('Error searching:', error);
+    }
+}
+
+// Join group from search
+async function joinGroup(groupId) {
+    try {
+        const response = await fetch(`/api/groups/${groupId}/join`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            alert('Joined group successfully!');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to join group');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to join group');
+    }
+}
+
+// Add contact by nickname
+async function addContactByNickname(nickname) {
+    try {
+        const response = await fetch('/api/contacts/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            alert('Contact added successfully!');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to add contact');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to add contact');
+    }
+}
+
 // Join channel
 async function joinChannel(channelId) {
     try {
