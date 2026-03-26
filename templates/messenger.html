@@ -69,7 +69,26 @@
                 <div class="chat-section">
                     <h3>Channels</h3>
                     <div id="channelsList" class="chat-items">
-                        <!-- All channels will be loaded dynamically -->
+                        {% for group_member in user_groups %}
+                        {% set group = group_member.group %}
+                        {% if group.is_channel %}
+                        <div class="chat-item chat-item-group" data-group-id="{{ group.id }}" data-group-name="{{ group.name }}">
+                            <div class="chat-avatar">📢</div>
+                            <div class="chat-info">
+                                <div class="chat-name">{{ group.name }}</div>
+                                {% if group.name == 'Anongram News' %}
+                                <div class="chat-subtitle">🏛️ Official Channel</div>
+                                {% endif %}
+                            </div>
+                            {% if group.creator_id == user.id %}
+                            <div class="group-menu-btn" onclick="event.stopPropagation(); showGroupMenu(event, {{ group.id }}, '{{ group.name }}')">⋮</div>
+                            {% endif %}
+                            {% if group.name != 'Anongram News' %}
+                            <button class="leave-channel-btn" onclick="event.stopPropagation(); leaveChannel({{ group.id }}, '{{ group.name }}')">✕</button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
                     </div>
                 </div>
             </div>

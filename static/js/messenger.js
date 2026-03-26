@@ -460,6 +460,9 @@ async function openGroup(groupId, groupName) {
     document.getElementById('messageInputContainer').style.display = 'flex';
 }
 
+// Make openGroup accessible globally for onclick handlers
+window.openGroup = openGroup;
+
 // Update chat header
 function updateChatHeader(name) {
     const header = document.getElementById('chatHeader');
@@ -680,3 +683,29 @@ setInterval(() => {
         loadMessages();
     }
 }, 3000);
+
+// Load all user's channels/groups/contacts on page load
+async function loadUserChats() {
+    try {
+        // Add click handlers to channel items
+        const channelItems = document.querySelectorAll('.chat-item-group');
+        channelItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                // Don't trigger if clicking menu or leave button
+                if (e.target.classList.contains('group-menu-btn') || 
+                    e.target.classList.contains('leave-channel-btn')) {
+                    return;
+                }
+                const groupId = this.getAttribute('data-group-id');
+                const groupName = this.getAttribute('data-group-name');
+                openGroup(parseInt(groupId), groupName);
+            });
+        });
+        console.log('Loaded', channelItems.length, 'channel(s)');
+    } catch (error) {
+        console.error('Error loading chats:', error);
+    }
+}
+
+// Call on page load
+loadUserChats();
