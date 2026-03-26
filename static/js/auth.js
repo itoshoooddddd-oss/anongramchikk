@@ -47,8 +47,19 @@ function displaySeedPhrases(seedPhrases) {
 
 function copySeedPhrases() {
     const seedText = document.getElementById('seedPhrases').textContent;
-    navigator.clipboard.writeText(seedText).then(() => {
-        alert('Seed phrases copied to clipboard!');
+    // Extract only the words, removing numbers and formatting
+    const lines = seedText.split('\n');
+    const words = [];
+    lines.forEach(line => {
+        const match = line.match(/\d+\.\s+(\w+)/);
+        if (match) {
+            words.push(match[1]);
+        }
+    });
+    const cleanSeedText = words.join(' ');
+    
+    navigator.clipboard.writeText(cleanSeedText).then(() => {
+        alert('Seed phrases copied to clipboard! (just words, no numbers)');
     }).catch(err => {
         console.error('Failed to copy:', err);
         alert('Failed to copy to clipboard');
