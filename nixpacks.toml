@@ -2,16 +2,22 @@
 # https://nixpacks.com/docs/configuration/file
 
 [phases.setup]
-nixPkgs = ["python311Packages.python", "python311Packages.pip"]
+nixPkgs = ["python311"]
 
 [phases.install]
-cmds = ["pip install --no-cache-dir -r requirements.txt"]
+cmds = [
+  "python -m venv /opt/venv",
+  ". /opt/venv/bin/activate",
+  "pip install --upgrade pip",
+  "pip install --no-cache-dir -r requirements.txt"
+]
 
 [phases.build]
 cmds = [
   "echo 'Building application...'",
+  ". /opt/venv/bin/activate",
   "python -c 'import app; print(\"App imported successfully\")'"
 ]
 
 [start]
-cmd = "gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 4"
+cmd = ". /opt/venv/bin/activate && gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 4"
