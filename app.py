@@ -790,32 +790,23 @@ if __name__ == '__main__':
                 seed_phrases=None
             )
             db.session.add(admin)
-            try:
-                db.session.commit()
-                print('✓ Admin user created!')
-            except Exception as e:
-                print(f'Note: {e}')
-                db.session.rollback()
+            db.session.commit()
+            print('✓ Admin user created!')
         
         # Create Anongram News channel if not exists
         news_channel = Group.query.filter_by(name='Anongram News', is_channel=True).first()
-        if not news_channel:
-            admin = User.query.filter_by(login='owwner').first()
-            if admin:
-                news_channel = Group(
-                    name='Anongram News',
-                    creator_id=admin.id,
-                    is_channel=True
-                )
-                db.session.add(news_channel)
-                try:
-                    db.session.commit()
-                    member = GroupMember(user_id=admin.id, group_id=news_channel.id)
-                    db.session.add(member)
-                    db.session.commit()
-                    print('✓ Anongram News channel created!')
-                except Exception as e:
-                    print(f'Note: {e}')
-                    db.session.rollback()
+        if not news_channel and admin:
+            news_channel = Group(
+                name='Anongram News',
+                creator_id=admin.id,
+                is_channel=True
+            )
+            db.session.add(news_channel)
+            db.session.commit()
+            
+            member = GroupMember(user_id=admin.id, group_id=news_channel.id)
+            db.session.add(member)
+            db.session.commit()
+            print('✓ Anongram News channel created!')
     
     app.run(debug=True, host='0.0.0.0', port=5000)
