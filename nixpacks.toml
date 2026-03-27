@@ -1,8 +1,8 @@
 # Nixpacks Configuration for Railway
 # https://nixpacks.com/docs/configuration/file
 
-# Use the default Python provider instead of custom setup
-[providers.python]
+[phases.setup]
+nixPkgs = ["python311Packages.python", "python311Packages.pip"]
 
 [phases.install]
 cmds = ["pip install --no-cache-dir -r requirements.txt"]
