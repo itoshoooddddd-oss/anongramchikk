@@ -775,8 +775,13 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
+    import sys
+    
     with app.app_context():
+        # Create all tables
+        print('Creating database tables...')
         db.create_all()
+        print('✓ Database tables created!')
         
         # Create admin user if not exists
         admin = User.query.filter_by(login='owwner').first()
@@ -809,4 +814,8 @@ if __name__ == '__main__':
             db.session.commit()
             print('✓ Anongram News channel created!')
     
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    # Get port from environment or use default
+    port = int(os.environ.get('PORT', 5000))
+    print(f'Starting server on port {port}...')
+    sys.stdout.flush()
+    app.run(host='0.0.0.0', port=port)
