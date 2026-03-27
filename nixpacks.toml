@@ -1,14 +1,11 @@
 # Nixpacks Configuration for Railway
 # https://nixpacks.com/docs/configuration/file
 
-[phases.setup]
-nixPkgs = ["python311"]
+# Use the default Python provider instead of custom setup
+[providers.python]
 
 [phases.install]
-cmds = [
-  "python -m pip install --upgrade pip",
-  "pip install --no-cache-dir -r requirements.txt"
-]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
 
 [phases.build]
 cmds = [
