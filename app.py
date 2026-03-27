@@ -7,9 +7,13 @@ import string
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-change-in-production-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///anongram.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-2024')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///anongram.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_recycle': 300,
+    'pool_pre_ping': True,
+}
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -805,5 +809,8 @@ if __name__ == '__main__':
             db.session.add(member)
             db.session.commit()
             print('Anongram News channel created!')
+    
+    # Create all tables before running
+    db.create_all()
     
     app.run(debug=True, host='0.0.0.0', port=5000)
