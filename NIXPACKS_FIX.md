@@ -11,7 +11,7 @@ When using custom nixpacks configuration with `[phases.setup]` and manually spec
 
 ## Solution Applied
 
-### Changed nixpacks.toml to Use Python Provider
+### Use Correct Nix Package Names with pip Included
 
 **Before (BROKEN):**
 ```toml
@@ -27,45 +27,38 @@ cmds = [
 
 **After (WORKING):**
 ```toml
-# Use the default Python provider instead of manual setup
-[providers.python]
+[phases.setup]
+nixPkgs = ["python311Packages.python", "python311Packages.pip"]
 
 [phases.install]
 cmds = ["pip install --no-cache-dir -r requirements.txt"]
 ```
 
-## Why This Works
+### Why This Works
 
-1. **[providers.python]** - Uses nixpacks' built-in Python provider
-   - Automatically includes Python AND pip
-   - Properly configured PATH variables
-   - No manual setup needed
-
-2. **Removed manual setup** - The old approach tried to manually install Python from Nix packages, which doesn't include pip
-
-3. **Simpler configuration** - Less custom configuration means fewer things that can break
+1. **`python311Packages.python`** - Gets Python from the Python packages repository
+2. **`python311Packages.pip`** - Explicitly installs pip as a separate package
+3. **Both are required** - Unlike standard Python installations, Nix separates Python and pip into different packages
 
 ## Files Changed
-- ✅ `nixpacks.toml` - Switched to Python provider
+- ✅ `nixpacks.toml` - Using correct Nix package names for Python and pip
 
-## How Nixpacks Providers Work
+## How Nix Packages Work
 
-Nixpacks has built-in providers for different languages:
-- **Python provider** - Includes Python, pip, and common tools
-- **Node provider** - Includes Node.js, npm, yarn
-- **Go provider** - Includes Go compiler, etc.
+Nix has a different package structure than standard Linux distributions:
 
-Using providers is recommended over manual setup because:
-- ✅ Pre-configured correctly
-- ✅ Tested and maintained
-- ✅ Include all necessary tools
-- ✅ Better caching
+- **`python311`** - Just the Python interpreter (no pip!)
+- **`python311Packages.python`** - Full Python installation from packages repo
+- **`python311Packages.pip`** - Pip as a separate package
+
+**Key Point:** In Nix, Python and pip are separate packages. You must install both explicitly.
 
 ## Expected Build Output
 
 ```
 ==> Setup
-Using Python provider...
+Installing python311Packages.python...
+Installing python311Packages.pip...
 Python version: 3.11.x
 Pip version: 23.x.x
 
@@ -85,18 +78,9 @@ gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 4
 Starting server... ✓
 ```
 
-## Alternative Solutions (If Provider Doesn't Work)
+## Alternative Solutions (If Current Approach Doesn't Work)
 
-### Option 1: Install pip manually in setup
-```toml
-[phases.setup]
-nixPkgs = ["python311Packages.python-pip"]
-
-[phases.install]
-cmds = ["pip install --no-cache-dir -r requirements.txt"]
-```
-
-### Option 2: Use ensurepip
+### Option 1: Use ensurepip (built into Python)
 ```toml
 [phases.setup]
 nixPkgs = ["python311"]
@@ -108,7 +92,7 @@ cmds = [
 ]
 ```
 
-### Option 3: Use get-pip.py
+### Option 2: Download get-pip.py
 ```toml
 [phases.setup]
 nixPkgs = ["python311", "curl"]
@@ -121,7 +105,16 @@ cmds = [
 ]
 ```
 
-**But the provider approach (current solution) is the cleanest!**
+### Option 3: Use python311Packages set
+```toml
+[phases.setup]
+nixPkgs = ["python311Packages.pythonFull"]
+
+[phases.install]
+cmds = ["pip install --no-cache-dir -r requirements.txt"]
+```
+
+**The current solution (Option in use) is the most reliable!**
 
 ## Deployment Steps
 
@@ -177,8 +170,9 @@ cmds = [
 
 ## Success Indicators
 
-✅ Logs show "Using Python provider"
-✅ Pip is available without manual installation
+✅ Logs show Python and pip packages being installed
+✅ Both `python311Packages.python` and `python311Packages.pip` install successfully
+✅ Pip is available without manual initialization
 ✅ All requirements install successfully
 ✅ Build phase completes
 ✅ Application starts
