@@ -332,12 +332,14 @@ body {
 }
 
 .admin-badge {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 12px;
     margin-left: 8px;
     display: inline-block;
+    font-weight: bold;
 }
 
 .logout-btn {
@@ -440,6 +442,45 @@ body {
     padding-left: 5px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Admin Panel Styles */
+.admin-panel-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-weight: bold;
+}
+
+.admin-section {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+}
+
+.admin-section h3 {
+    margin-top: 0;
+    color: var(--text-primary);
+    font-size: 16px;
+}
+
+.danger-btn {
+    background: #ef4444 !important;
+    color: white;
+}
+
+.danger-btn:hover {
+    background: #dc2626 !important;
+}
+
+.primary-btn {
+    background: #3b82f6 !important;
+    color: white;
+}
+
+.primary-btn:hover {
+    background: #2563eb !important;
 }
 
 .action-btn {

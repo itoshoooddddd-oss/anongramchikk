@@ -709,3 +709,110 @@ async function loadUserChats() {
 
 // Call on page load
 loadUserChats();
+
+// Admin Panel Functions
+function showAdminPanel() {
+    document.getElementById('adminPanelModal').style.display = 'block';
+}
+
+async function banUser() {
+    const nickname = document.getElementById('banNickname').value.trim();
+    const resultDiv = document.getElementById('adminResult');
+    
+    if (!nickname) {
+        resultDiv.textContent = 'Please enter a nickname';
+        resultDiv.className = 'modal-result error';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/ban', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            resultDiv.textContent = data.message;
+            resultDiv.className = 'modal-result success';
+            document.getElementById('banNickname').value = '';
+        } else {
+            resultDiv.textContent = data.error || 'Failed to ban user';
+            resultDiv.className = 'modal-result error';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'Failed to ban user';
+        resultDiv.className = 'modal-result error';
+    }
+}
+
+async function unbanUser() {
+    const nickname = document.getElementById('unbanNickname').value.trim();
+    const resultDiv = document.getElementById('adminResult');
+    
+    if (!nickname) {
+        resultDiv.textContent = 'Please enter a nickname';
+        resultDiv.className = 'modal-result error';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/unban', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            resultDiv.textContent = data.message;
+            resultDiv.className = 'modal-result success';
+            document.getElementById('unbanNickname').value = '';
+        } else {
+            resultDiv.textContent = data.error || 'Failed to unban user';
+            resultDiv.className = 'modal-result error';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'Failed to unban user';
+        resultDiv.className = 'modal-result error';
+    }
+}
+
+async function sendBroadcast() {
+    const content = document.getElementById('broadcastMessage').value.trim();
+    const resultDiv = document.getElementById('adminResult');
+    
+    if (!content) {
+        resultDiv.textContent = 'Please enter a message';
+        resultDiv.className = 'modal-result error';
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/admin/broadcast', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+            resultDiv.textContent = data.message;
+            resultDiv.className = 'modal-result success';
+            document.getElementById('broadcastMessage').value = '';
+        } else {
+            resultDiv.textContent = data.error || 'Failed to send broadcast';
+            resultDiv.className = 'modal-result error';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        resultDiv.textContent = 'Failed to send broadcast';
+        resultDiv.className = 'modal-result error';
+    }
+}

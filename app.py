@@ -19,6 +19,9 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+# Reserved admin nicknames
+RESERVED_NICKNAMES = ['owwner', 'owner', 'admin', 'aadmin']
+
 # Seed words list for generating seed phrases
 SEED_WORDS = [
     'abandon', 'ability', 'able', 'about', 'above', 'absent', 'absorb', 'abstract', 'absurd', 'abuse',
@@ -236,6 +239,7 @@ class User(db.Model):
     seed_phrases = db.Column(db.Text, nullable=True)  # Made nullable for admin
     password_hash = db.Column(db.String(256), nullable=True)  # For admin password
     is_admin = db.Column(db.Boolean, default=False)  # Admin flag
+    is_banned = db.Column(db.Boolean, default=False)  # Ban status
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     contacts = db.relationship('Contact', backref='owner', lazy=True, foreign_keys='Contact.user_id')
@@ -302,6 +306,10 @@ def register():
         # Validation
         if not login or not nickname:
             return jsonify({'error': 'Login and nickname are required'}), 400
+        
+        # Check if nickname is reserved
+        if nickname.lower() in [r.lower() for r in RESERVED_NICKNAMES]:
+            return jsonify({'error': 'This nickname is reserved'}), 403
         
         # Check if login exists
         if User.query.filter_by(login=login).first():
@@ -775,6 +783,100 @@ def logout():
     session.pop('nickname', None)
     return redirect(url_for('index'))
 
+@app.route('/api/admin/ban', methods=['POST'])
+def ban_user():
+    """Ban user by nickname (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    current_user = User.query.get(session['user_id'])
+    if not current_user or not current_user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    data = request.get_json()
+    nickname = data.get('nickname', '').strip()
+    
+    if not nickname:
+        return jsonify({'error': 'Nickname required'}), 400
+    
+    # Can't ban reserved nicknames
+    if nickname.lower() in [r.lower() for r in RESERVED_NICKNAMES]:
+        return jsonify({'error': 'Cannot ban reserved nicknames'}), 400
+    
+    user_to_ban = User.query.filter_by(nickname=nickname).first()
+    if not user_to_ban:
+        return jsonify({'error': 'User not found'}), 404
+    
+    user_to_ban.is_banned = True
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': f'User {nickname} has been banned'})
+
+@app.route('/api/admin/unban', methods=['POST'])
+def unban_user():
+    """Unban user by nickname (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    current_user = User.query.get(session['user_id'])
+    if not current_user or not current_user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    data = request.get_json()
+    nickname = data.get('nickname', '').strip()
+    
+    if not nickname:
+        return jsonify({'error': 'Nickname required'}), 400
+    
+    user_to_unban = User.query.filter_by(nickname=nickname).first()
+    if not user_to_unban:
+        return jsonify({'error': 'User not found'}), 404
+    
+    user_to_unban.is_banned = False
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': f'User {nickname} has been unbanned'})
+
+@app.route('/api/admin/broadcast', methods=['POST'])
+def broadcast_message():
+    """Send message to all users via Anongram bot (admin only)"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    current_user = User.query.get(session['user_id'])
+    if not current_user or not current_user.is_admin:
+        return jsonify({'error': 'Admin access required'}), 403
+    
+    data = request.get_json()
+    content = data.get('content', '').strip()
+    
+    if not content:
+        return jsonify({'error': 'Message content required'}), 400
+    
+    # Get Anongram bot channel
+    anongram_channel = Group.query.filter_by(name='Anongram', is_channel=True).first()
+    if not anongram_channel:
+        # Create Anongram bot channel
+        anongram_channel = Group(
+            name='Anongram',
+            description='Official Anongram Bot',
+            creator_id=current_user.id,
+            is_channel=True
+        )
+        db.session.add(anongram_channel)
+        db.session.commit()
+    
+    # Create message from bot
+    bot_message = Message(
+        content=f"📢 **BROADCAST MESSAGE**\n\n{content}",
+        sender_id=current_user.id,
+        group_id=anongram_channel.id
+    )
+    db.session.add(bot_message)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Broadcast sent to all users'})
+
 if __name__ == '__main__':
     import sys
     
@@ -790,7 +892,7 @@ if __name__ == '__main__':
             from werkzeug.security import generate_password_hash
             admin = User(
                 login='owwner',
-                nickname='Admin',
+                nickname='Owner',  # Display name with capital O
                 password_hash=generate_password_hash('musodzhonov'),
                 is_admin=True,
                 seed_phrases=None
@@ -804,6 +906,7 @@ if __name__ == '__main__':
         if not news_channel and admin:
             news_channel = Group(
                 name='Anongram News',
+                description='Official Anongram News Channel',
                 creator_id=admin.id,
                 is_channel=True
             )
@@ -814,6 +917,26 @@ if __name__ == '__main__':
             db.session.add(member)
             db.session.commit()
             print('✓ Anongram News channel created!')
+        
+        # Create Anongram Bot channel
+        anongram_bot = Group.query.filter_by(name='Anongram', is_channel=True).first()
+        if not anongram_bot and admin:
+            anongram_bot = Group(
+                name='Anongram',
+                description='Official Anongram Bot',
+                creator_id=admin.id,
+                is_channel=True
+            )
+            db.session.add(anongram_bot)
+            db.session.commit()
+            
+            # Add all users to Anongram bot channel
+            all_users = User.query.all()
+            for user in all_users:
+                member = GroupMember(user_id=user.id, group_id=anongram_bot.id)
+                db.session.add(member)
+            db.session.commit()
+            print('✓ Anongram Bot channel created!')
     
     # Get port from environment or use default
     port = int(os.environ.get('PORT', 5000))

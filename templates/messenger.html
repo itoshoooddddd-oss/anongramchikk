@@ -13,12 +13,15 @@
             <div class="sidebar-header">
                 <div class="logo-small">🔐 Anongram</div>
                 <div class="user-info">
-                    <span class="user-nickname">{{ user.nickname }} {% if user.is_admin %}<span class="admin-badge">👑 Admin</span>{% endif %}</span>
+                    <span class="user-nickname">{{ user.nickname }} {% if user.is_admin %}<span class="admin-badge">✓ Owner</span>{% endif %}</span>
                     <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
                 </div>
             </div>
             
             <div class="sidebar-actions">
+                {% if user.is_admin %}
+                <button onclick="showAdminPanel()" class="action-btn admin-panel-btn">🛡️ Admin Panel</button>
+                {% endif %}
                 <button onclick="showNewChatModal()" class="action-btn">💬 New Chat</button>
                 <button onclick="showNewGroupModal()" class="action-btn">👥 New Group</button>
                 <button onclick="showNewChannelModal()" class="action-btn">📢 New Channel</button>
@@ -170,6 +173,40 @@
         <div class="reaction-emoji" onclick="addReaction('😮')">😮</div>
         <div class="reaction-emoji" onclick="addReaction('😢')">😢</div>
         <div class="reaction-emoji" onclick="addReaction('😡')">😡</div>
+    </div>
+    
+    <!-- Admin Panel Modal -->
+    <div id="adminPanelModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('adminPanelModal')">&times;</span>
+            <h2>🛡️ Admin Panel</h2>
+            
+            <div class="admin-section">
+                <h3>🤖 Ban Bot Control</h3>
+                <div class="form-group">
+                    <label>Ban User by Nickname:</label>
+                    <input type="text" id="banNickname" placeholder="Enter nickname to ban">
+                    <button onclick="banUser()" class="action-btn danger-btn">🚫 Ban User</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Unban User by Nickname:</label>
+                    <input type="text" id="unbanNickname" placeholder="Enter nickname to unban">
+                    <button onclick="unbanUser()" class="action-btn">✅ Unban User</button>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>📢 Broadcast Message</h3>
+                <div class="form-group">
+                    <label>Message to all users (via Anongram bot):</label>
+                    <textarea id="broadcastMessage" rows="4" placeholder="Enter your broadcast message..."></textarea>
+                    <button onclick="sendBroadcast()" class="action-btn primary-btn">📨 Send to All Users</button>
+                </div>
+            </div>
+            
+            <div id="adminResult" class="modal-result"></div>
+        </div>
     </div>
     
     <script src="{{ url_for('static', filename='js/messenger.js') }}"></script>
