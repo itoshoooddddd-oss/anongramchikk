@@ -5,11 +5,26 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import string
 import os
+import sys
 from datetime import datetime
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-2024')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///anongram.db')
+
+# Database configuration - handle both SQLite and PostgreSQL
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///anongram.db')
+
+# Fix for PostgreSQL SSL in production (Railway)
+if database_url and database_url.startswith('postgres://'):
+    # Replace postgres:// with postgresql:// for SQLAlchemy
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+    # Add SSL mode parameter if not present
+    if '?' not in database_url:
+        database_url += '?sslmode=require'
+    else:
+        database_url += '&sslmode=require'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 300,
@@ -784,6 +799,24 @@ def logout():
     session.pop('nickname', None)
     return redirect(url_for('index'))
 
+# Error handlers for better debugging
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({'error': 'Not found'}), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return jsonify({'error': 'Internal server error'}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(error):
+    """Handle all unhandled exceptions"""
+    import traceback
+    print(f"Unhandled exception: {str(error)}")
+    print(traceback.format_exc())
+    return jsonify({'error': 'An unexpected error occurred'}), 500
+
 @app.route('/api/admin/ban', methods=['POST'])
 def ban_user():
     """Ban user by nickname (admin only)"""
@@ -878,67 +911,70 @@ def broadcast_message():
     
     return jsonify({'success': True, 'message': 'Broadcast sent to all users'})
 
-if __name__ == '__main__':
-    import sys
-    
-    with app.app_context():
-        # Create all tables
-        print('Creating database tables...')
-        db.create_all()
-        print('✓ Database tables created!')
-        
-        # Create admin user if not exists
-        admin = User.query.filter_by(login='owwner').first()
-        if not admin:
-            from werkzeug.security import generate_password_hash
-            admin = User(
-                login='owwner',
-                nickname='Owner',  # Display name with capital O
-                password_hash=generate_password_hash('musodzhonov'),
-                is_admin=True,
-                seed_phrases=None
-            )
-            db.session.add(admin)
-            db.session.commit()
-            print('✓ Admin user created!')
-        
-        # Create Anongram News channel if not exists
-        news_channel = Group.query.filter_by(name='Anongram News', is_channel=True).first()
-        if not news_channel and admin:
-            news_channel = Group(
-                name='Anongram News',
-                description='Official Anongram News Channel',
-                creator_id=admin.id,
-                is_channel=True
-            )
-            db.session.add(news_channel)
-            db.session.commit()
+# Application initialization
+def initialize_app():
+    """Initialize the application with database setup"""
+    try:
+        with app.app_context():
+            # Create all tables
+            db.create_all()
             
-            member = GroupMember(user_id=admin.id, group_id=news_channel.id)
-            db.session.add(member)
-            db.session.commit()
-            print('✓ Anongram News channel created!')
-        
-        # Create Anongram Bot channel
-        anongram_bot = Group.query.filter_by(name='Anongram', is_channel=True).first()
-        if not anongram_bot and admin:
-            anongram_bot = Group(
-                name='Anongram',
-                description='Official Anongram Bot',
-                creator_id=admin.id,
-                is_channel=True
-            )
-            db.session.add(anongram_bot)
-            db.session.commit()
+            # Create admin user if not exists
+            admin = User.query.filter_by(login='owwner').first()
+            if not admin:
+                admin = User(
+                    login='owwner',
+                    nickname='Owner',  # Display name with capital O
+                    password_hash=generate_password_hash('musodzhonov'),
+                    is_admin=True,
+                    seed_phrases=None
+                )
+                db.session.add(admin)
+                db.session.commit()
             
-            # Add all users to Anongram bot channel
-            all_users = User.query.all()
-            for user in all_users:
-                member = GroupMember(user_id=user.id, group_id=anongram_bot.id)
+            # Create Anongram News channel if not exists
+            news_channel = Group.query.filter_by(name='Anongram News', is_channel=True).first()
+            if not news_channel and admin:
+                news_channel = Group(
+                    name='Anongram News',
+                    description='Official Anongram News Channel',
+                    creator_id=admin.id,
+                    is_channel=True
+                )
+                db.session.add(news_channel)
+                db.session.commit()
+                
+                member = GroupMember(user_id=admin.id, group_id=news_channel.id)
                 db.session.add(member)
-            db.session.commit()
-            print('✓ Anongram Bot channel created!')
-    
+                db.session.commit()
+            
+            # Create Anongram Bot channel
+            anongram_bot = Group.query.filter_by(name='Anongram', is_channel=True).first()
+            if not anongram_bot and admin:
+                anongram_bot = Group(
+                    name='Anongram',
+                    description='Official Anongram Bot',
+                    creator_id=admin.id,
+                    is_channel=True
+                )
+                db.session.add(anongram_bot)
+                db.session.commit()
+                
+                # Add all users to Anongram bot channel
+                all_users = User.query.all()
+                for user in all_users:
+                    member = GroupMember(user_id=user.id, group_id=anongram_bot.id)
+                    db.session.add(member)
+                db.session.commit()
+    except Exception as e:
+        print(f"Error during app initialization: {e}")
+        import traceback
+        traceback.print_exc()
+
+# Initialize app on import (for production)
+initialize_app()
+
+if __name__ == '__main__':
     # Get port from environment or use default
     port = int(os.environ.get('PORT', 5000))
     print(f'Starting server on port {port}...')
