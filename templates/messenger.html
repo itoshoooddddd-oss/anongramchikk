@@ -371,22 +371,37 @@
         const originalOpenChat = window.openChat || function() {};
         window.openChat = function(name) {
             originalOpenChat(name);
-            setTimeout(updateHamburgerVisibility, 100);
+            setTimeout(function() {
+                const mobileHeader = document.querySelector('.mobile-header');
+                if (mobileHeader) {
+                    mobileHeader.style.display = 'none';
+                }
+            }, 100);
         };
         
         // Override openGroup and openChannel
         const originalOpenGroup = window.openGroup || function() {};
         window.openGroup = function(id, name) {
             originalOpenGroup(id, name);
-            setTimeout(updateHamburgerVisibility, 100);
+            setTimeout(function() {
+                const mobileHeader = document.querySelector('.mobile-header');
+                if (mobileHeader) {
+                    mobileHeader.style.display = 'none';
+                }
+            }, 100);
         };
         
         const originalOpenChannel = window.openChannel || function() {};
         window.openChannel = function(id, name) {
             originalOpenChannel(id, name);
-            setTimeout(updateHamburgerVisibility, 100);
+            setTimeout(function() {
+                const mobileHeader = document.querySelector('.mobile-header');
+                if (mobileHeader) {
+                    mobileHeader.style.display = 'none';
+                }
+            }, 100);
         };
-        
+
         // Add back button functionality that shows hamburger when back is pressed
         function goBackToChatList() {
             const chatListContainer = document.getElementById('chatListContainer');
@@ -410,9 +425,13 @@
                 `;
             }
             
-            updateHamburgerVisibility();
+            // ALWAYS show hamburger when returning to chat list
+            const mobileHeader = document.querySelector('.mobile-header');
+            if (mobileHeader) {
+                mobileHeader.style.display = 'flex';
+            }
         }
-        
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateHamburgerVisibility();
