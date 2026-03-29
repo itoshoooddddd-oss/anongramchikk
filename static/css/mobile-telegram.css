@@ -95,6 +95,7 @@
     transition: left 0.3s ease;
     box-shadow: 2px 0 10px rgba(0,0,0,0.3);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .side-menu.active {
@@ -531,7 +532,22 @@
 
     /* Show mobile chat list */
     .chat-list-container {
-        display: block;
+        display: block !important;
+    }
+
+    /* Ensure chat sections are visible */
+    .chat-list-section {
+        display: block !important;
+    }
+
+    #contactsList,
+    #groupsList,
+    #channelsList {
+        display: block !important;
+    }
+
+    .chat-list-item {
+        display: flex !important;
     }
 
     /* Hide elements on mobile */

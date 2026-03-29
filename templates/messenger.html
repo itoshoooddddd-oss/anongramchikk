@@ -361,21 +361,26 @@
         function toggleSideMenu() {
             const menu = document.getElementById('sideMenu');
             const overlay = document.getElementById('sideMenuOverlay');
-            menu.classList.toggle('active');
-            overlay.classList.toggle('active');
-            
-            // Prevent body scroll when menu is open
-            if (menu.classList.contains('active')) {
-                document.body.style.overflow = 'hidden';
-            } else {
-                document.body.style.overflow = '';
+            if (menu && overlay) {
+                menu.classList.toggle('active');
+                overlay.classList.toggle('active');
+                
+                // Prevent body scroll when menu is open
+                if (menu.classList.contains('active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
             }
         }
         
         // Open Group Chat
         function openGroupChat(groupId, groupName) {
             // Hide chat list, show chat area
-            document.getElementById('chatListContainer').style.display = 'none';
+            const chatListContainer = document.getElementById('chatListContainer');
+            if (chatListContainer) {
+                chatListContainer.style.display = 'none';
+            }
             openChat(groupName);
             
             // Set header title
@@ -383,12 +388,18 @@
             if (header) {
                 header.innerHTML = `<div class="chat-title">${groupName}</div>`;
             }
+            
+            // Add back button on all screen sizes
+            setTimeout(() => addBackButton(), 100);
         }
         
         // Open Channel Chat
         function openChannelChat(channelId, channelName) {
             // Hide chat list, show chat area
-            document.getElementById('chatListContainer').style.display = 'none';
+            const chatListContainer = document.getElementById('chatListContainer');
+            if (chatListContainer) {
+                chatListContainer.style.display = 'none';
+            }
             openChat(channelName);
             
             // Set header title
@@ -396,34 +407,60 @@
             if (header) {
                 header.innerHTML = `<div class="chat-title">${channelName}</div>`;
             }
+            
+            // Add back button on all screen sizes
+            setTimeout(() => addBackButton(), 100);
         }
         
-        // Back to chat list (for mobile)
+        // Back to chat list (for mobile and PC)
         function backToChatList() {
-            if (window.innerWidth <= 768) {
-                document.getElementById('chatListContainer').style.display = 'block';
-                document.getElementById('messageInputContainer').style.display = 'none';
-                
-                // Reset header
-                const header = document.getElementById('chatHeader');
-                if (header) {
-                    header.innerHTML = `<div class="chat-title">Chats</div>`;
-                }
+            const chatListContainer = document.getElementById('chatListContainer');
+            const messageInputContainer = document.getElementById('messageInputContainer');
+            
+            if (chatListContainer) {
+                chatListContainer.style.display = 'block';
+            }
+            if (messageInputContainer) {
+                messageInputContainer.style.display = 'none';
+            }
+            
+            // Remove back button
+            const backBtn = document.querySelector('.back-btn');
+            if (backBtn) {
+                backBtn.remove();
+            }
+            
+            // Reset header
+            const header = document.getElementById('chatHeader');
+            if (header) {
+                header.innerHTML = `<div class="chat-title">Chats</div>`;
+            }
+            
+            // Clear messages container
+            const messagesContainer = document.getElementById('messagesContainer');
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>Welcome to Anongram! 🔐</h2>
+                        <p>Select a contact, group, or channel from the sidebar to start messaging.</p>
+                        <p>Create new groups and channels or add contacts using the buttons on the left.</p>
+                    </div>
+                `;
             }
         }
         
-        // Add back button to chat header on mobile
+        // Add back button to chat header
         function addBackButton() {
-            if (window.innerWidth <= 768) {
-                const header = document.getElementById('chatHeader');
-                if (header && !header.querySelector('.back-btn')) {
-                    const backBtn = document.createElement('button');
-                    backBtn.className = 'back-btn';
-                    backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
-                    backBtn.onclick = backToChatList;
-                    backBtn.style.cssText = 'background:none; border:none; color:var(--text-color); font-size:20px; cursor:pointer; margin-right:12px; padding:8px;';
-                    header.insertBefore(backBtn, header.firstChild);
-                }
+            const header = document.getElementById('chatHeader');
+            if (header && !header.querySelector('.back-btn')) {
+                const backBtn = document.createElement('button');
+                backBtn.className = 'back-btn';
+                backBtn.innerHTML = '<i class="fas fa-arrow-left"></i>';
+                backBtn.onclick = backToChatList;
+                backBtn.style.cssText = 'background:none; border:none; color:var(--text-color); font-size:20px; cursor:pointer; margin-right:12px; padding:8px; display:flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:50%; transition:all 0.3s ease;';
+                backBtn.onmouseover = function() { this.style.background = 'var(--bg-tertiary)'; };
+                backBtn.onmouseout = function() { this.style.background = 'none'; };
+                header.insertBefore(backBtn, header.firstChild);
             }
         }
         
@@ -432,10 +469,7 @@
         window.openChat = function(contactName) {
             originalOpenChat(contactName);
             setTimeout(() => {
-                if (window.innerWidth <= 768) {
-                    document.getElementById('chatListContainer').style.display = 'none';
-                    addBackButton();
-                }
+                addBackButton();
             }, 100);
         };
         
@@ -460,7 +494,10 @@
         // Handle orientation change
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
-                document.getElementById('chatListContainer').style.display = 'none';
+                const chatListContainer = document.getElementById('chatListContainer');
+                if (chatListContainer) {
+                    chatListContainer.style.display = 'none';
+                }
                 document.body.style.overflow = '';
             }
         });
