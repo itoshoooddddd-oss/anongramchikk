@@ -9,12 +9,352 @@
     <title>Anongram Messenger</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-telegram.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/desktop-hamburger.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/interface-fixes.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 </head>
 <body class="messenger-page">
+    <!-- Main Hamburger Menu Button (Visible on Desktop) -->
+    <button class="hamburger-main" onclick="toggleSideMenu()" title="Menu">
+        <i class="fas fa-bars"></i>
+    </button>
+
     <!-- Mobile Header with Hamburger Menu -->
     <div class="mobile-header">
+        <div class="header-left">
+            <button class="menu-toggle" onclick="toggleSideMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">🔐 Anongram</div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" onclick="showNewChatModal()" title="New Chat">
+                <i class="fas fa-pen-to-square"></i>
+            </button>
+        </div>
+    </div>
 
+    <!-- Side Menu Overlay -->
+    <div class="side-menu-overlay" id="sideMenuOverlay" onclick="toggleSideMenu()"></div>
+
+    <!-- Side Menu (Settings) -->
+    <div class="side-menu" id="sideMenu">
+        <div class="side-menu-header">
+            <button class="side-menu-close" onclick="toggleSideMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="side-menu-user">
+                <div class="side-menu-avatar">{{ user.nickname[0].upper() }}</div>
+                <div class="side-menu-user-info">
+                    <div class="side-menu-username">{{ user.nickname }} {% if user.is_admin %}<span style="background: rgba(255,255,255,0.3); padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-left: 5px;">ADMIN</span>{% endif %}</div>
+                    <div class="side-menu-status">Online</div>
+                </div>
+            </div>
+        </div>
+
+        {% if user.is_admin %}
+        <div class="side-menu-section">
+            <h4 class="side-menu-section-title"><i class="fas fa-shield-alt"></i> Admin Panel</h4>
+            <button onclick="showAdminPanel(); toggleSideMenu()" class="side-menu-item admin-only">
+                <i class="fas fa-user-shield"></i>
+                <span>🛡️ Ban Bot Control</span>
+            </button>
+            <button onclick="sendBroadcast(); toggleSideMenu()" class="side-menu-item admin-only">
+                <i class="fas fa-bullhorn"></i>
+                <span>📢 Broadcast Message</span>
+            </button>
+        </div>
+        {% endif %}
+
+        <div class="side-menu-section">
+            <h4 class="side-menu-section-title"><i class="fas fa-comments"></i> Chats</h4>
+            <button onclick="showNewChatModal(); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-comment"></i>
+                <span>New Chat</span>
+            </button>
+            <button onclick="showAddContactModal(); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-user-plus"></i>
+                <span>Add Contact</span>
+            </button>
+            <button onclick="showNewGroupModal(); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-users"></i>
+                <span>Create Group</span>
+            </button>
+            <button onclick="showNewChannelModal(); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-broadcast-tower"></i>
+                <span>Create Channel</span>
+            </button>
+        </div>
+
+        <div class="side-menu-section">
+            <h4 class="side-menu-section-title"><i class="fas fa-cog"></i> Settings</h4>
+            <button onclick="alert('Profile settings coming soon!'); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </button>
+            <button onclick="alert('Notifications settings coming soon!'); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </button>
+            <button onclick="alert('Privacy settings coming soon!'); toggleSideMenu()" class="side-menu-item">
+                <i class="fas fa-lock"></i>
+                <span>Privacy</span>
+            </button>
+        </div>
+
+        <div class="side-menu-section" style="border-bottom: none;">
+            <a href="{{ url_for('logout') }}" class="side-menu-item danger">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Chat Area -->
+    <div class="messenger-container">
+        <!-- Chat List Container (Mobile) -->
+        <div class="chat-list-container mobile-only" id="chatListContainer">
+            <!-- Search Bar -->
+            <div class="search-bar-container">
+                <input type="text" id="universalSearchInput" placeholder="🔍 Search chats..." class="search-bar" oninput="universalSearch()">
+                <div id="universalSearchResults" class="search-results" style="display: none;"></div>
+            </div>
+
+            <!-- Chat List -->
+            <div class="chat-list">
+                <!-- Contacts Section -->
+                <div class="chat-list-section">
+                    <div class="chat-list-section-header">
+                        <span class="chat-list-section-title"><i class="fas fa-user-friends"></i> Contacts</span>
+                        <div class="chat-list-actions">
+                            <button class="chat-list-action-btn" onclick="showAddContactModal()" title="Add Contact">
+                                <i class="fas fa-user-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="contactsList">
+                        {% for contact in contacts %}
+                        <div class="chat-list-item" onclick="openChat('{{ contact.contact_nickname }}')">
+                            <div class="chat-list-avatar online">
+                                {{ contact.contact_nickname[0].upper() }}
+                            </div>
+                            <div class="chat-list-content">
+                                <div class="chat-list-header">
+                                    <div class="chat-list-name">{{ contact.contact_nickname }}</div>
+                                </div>
+                                <div class="chat-list-preview">
+                                    <div class="chat-list-message">Tap to start chatting</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Groups Section -->
+                <div class="chat-list-section">
+                    <div class="chat-list-section-header">
+                        <span class="chat-list-section-title"><i class="fas fa-users"></i> Groups</span>
+                        <div class="chat-list-actions">
+                            <button class="chat-list-action-btn" onclick="showNewGroupModal()" title="Create Group">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="groupsList">
+                        {% for group_member in user_groups %}
+                        {% set group = group_member.group %}
+                        {% if not group.is_channel %}
+                        <div class="chat-list-item" onclick="openGroupChat({{ group.id }}, '{{ group.name }}')">
+                            <div class="chat-list-avatar">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="chat-list-content">
+                                <div class="chat-list-header">
+                                    <div class="chat-list-name">{{ group.name }}</div>
+                                </div>
+                                <div class="chat-list-preview">
+                                    <div class="chat-list-message">Group chat</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Channels Section -->
+                <div class="chat-list-section">
+                    <div class="chat-list-section-header">
+                        <span class="chat-list-section-title"><i class="fas fa-broadcast-tower"></i> Channels</span>
+                        <div class="chat-list-actions">
+                            <button class="chat-list-action-btn" onclick="showNewChannelModal()" title="Create Channel">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="channelsList">
+                        {% for group_member in user_groups %}
+                        {% set group = group_member.group %}
+                        {% if group.is_channel %}
+                        <div class="chat-list-item" onclick="openChannelChat({{ group.id }}, '{{ group.name }}')">
+                            <div class="chat-list-avatar">
+                                <i class="fas fa-broadcast-tower"></i>
+                            </div>
+                            <div class="chat-list-content">
+                                <div class="chat-list-header">
+                                    <div class="chat-list-name">{{ group.name }}</div>
+                                    {% if group.name == 'Anongram News' %}
+                                    <span class="chat-list-badge">★</span>
+                                    {% endif %}
+                                </div>
+                                <div class="chat-list-preview">
+                                    <div class="chat-list-message">{% if group.name == 'Anongram News' %}Official Channel{% else %}Channel{% endif %}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header" id="chatHeader">
+                <div class="chat-title">Select a chat to start messaging</div>
+            </div>
+            
+            <div class="messages-container" id="messagesContainer">
+                <div class="welcome-message">
+                    <h2>Welcome to Anongram! 🔐</h2>
+                    <p>Select a contact, group, or channel from the sidebar to start messaging.</p>
+                    <p>Create new groups and channels or add contacts using the buttons on the left.</p>
+                </div>
+            </div>
+            
+            <div class="message-input-container" id="messageInputContainer" style="display: none;">
+                <input type="text" id="messageInput" class="message-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()" class="send-btn">📤 Send</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for adding contacts -->
+    <div id="addContactModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addContactModal')">&times;</span>
+            <h2>Add Contact</h2>
+            <input type="text" id="contactNickname" placeholder="Enter nickname" class="modal-input">
+            <button onclick="addContact()" class="modal-btn">Add Contact</button>
+            <div id="addContactResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Modal for creating group -->
+    <div id="newGroupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('newGroupModal')">&times;</span>
+            <h2>Create Group</h2>
+            <input type="text" id="groupName" placeholder="Enter group name" class="modal-input">
+            <button onclick="createGroup(false)" class="modal-btn">Create Group</button>
+            <div id="createGroupResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Modal for creating channel -->
+    <div id="newChannelModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('newChannelModal')">&times;</span>
+            <h2>Create Channel</h2>
+            <input type="text" id="channelName" placeholder="Enter channel name" class="modal-input">
+            <button onclick="createGroup(true)" class="modal-btn">Create Channel</button>
+            <div id="createChannelResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Group Management Menu Modal -->
+    <div id="groupMenuModal" class="modal">
+        <div class="modal-content modal-small">
+            <span class="close" onclick="closeModal('groupMenuModal')">&times;</span>
+            <h2 id="groupMenuTitle">Group Settings</h2>
+            <input type="hidden" id="currentGroupId">
+            <div class="group-menu-options">
+                <button onclick="editGroupName()" class="menu-option-btn">✏️ Rename</button>
+                <button onclick="deleteGroupConfirm()" class="menu-option-btn menu-option-danger">🗑️ Delete Group</button>
+            </div>
+            <div id="groupMenuResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Reaction Picker -->
+    <div id="reactionPicker" class="reaction-picker">
+        <div class="reaction-emoji" onclick="addReaction('👍')">👍</div>
+        <div class="reaction-emoji" onclick="addReaction('❤️')">❤️</div>
+        <div class="reaction-emoji" onclick="addReaction('😂')">😂</div>
+        <div class="reaction-emoji" onclick="addReaction('😮')">😮</div>
+        <div class="reaction-emoji" onclick="addReaction('😢')">😢</div>
+        <div class="reaction-emoji" onclick="addReaction('😡')">😡</div>
+    </div>
+    
+    <!-- Admin Panel Modal -->
+    <div id="adminPanelModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('adminPanelModal')">&times;</span>
+            <h2>🛡️ Admin Panel</h2>
+            
+            <div class="admin-section">
+                <h3>🤖 Ban Bot Control</h3>
+                <div class="form-group">
+                    <label>Ban User by Nickname:</label>
+                    <input type="text" id="banNickname" placeholder="Enter nickname to ban">
+                    <button onclick="banUser()" class="action-btn danger-btn">🚫 Ban User</button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Unban User by Nickname:</label>
+                    <input type="text" id="unbanNickname" placeholder="Enter nickname to unban">
+                    <button onclick="unbanUser()" class="action-btn">✅ Unban User</button>
+                </div>
+            </div>
+            
+            <div class="admin-section">
+                <h3>📢 Broadcast Message</h3>
+                <div class="form-group">
+                    <label>Message to all users (via Anongram bot):</label>
+                    <textarea id="broadcastMessage" rows="4" placeholder="Enter your broadcast message..."></textarea>
+                    <button onclick="sendBroadcast()" class="action-btn primary-btn">📨 Send to All Users</button>
+                </div>
+            </div>
+            
+            <div id="adminResult" class="modal-result"></div>
+        </div>
+    </div>
+    
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-bottom-nav">
+        <div class="bottom-nav-items">
+            <div class="bottom-nav-item active" onclick="showChatsTab()">
+                <i class="fas fa-comments"></i>
+                <span>Chats</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showNewChatModal()">
+                <i class="fas fa-pen-to-square"></i>
+                <span>New</span>
+            </div>
+            <div class="bottom-nav-item" onclick="showAddContactModal()">
+                <i class="fas fa-user-plus"></i>
+                <span>Add</span>
+            </div>
+            <div class="bottom-nav-item" onclick="toggleSideMenu()">
+                <i class="fas fa-bars"></i>
+                <span>Menu</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/messenger.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/interface-fix.js') }}"></script>
 </body>
 </html>
