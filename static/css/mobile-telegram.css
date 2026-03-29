@@ -522,12 +522,12 @@
         top: 56px;
         left: 0;
         right: 0;
-        bottom: 60px;
+        bottom: 0;
     }
 
     /* Hide desktop sidebar on mobile */
     .sidebar {
-        display: none;
+        display: none !important;
     }
 
     /* Show mobile chat list */
