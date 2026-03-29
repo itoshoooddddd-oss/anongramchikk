@@ -1,0 +1,508 @@
+/* Mobile-Optimized Styles for Anongram Messenger */
+
+/* Mobile Header */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    z-index: 1000;
+    padding: 0 15px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.menu-toggle:hover {
+    background: var(--bg-tertiary);
+}
+
+.mobile-logo {
+    font-size: 20px;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.header-btn {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.header-btn:hover {
+    background: var(--bg-tertiary);
+}
+
+.profile-btn {
+    font-size: 28px;
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+    display: none;
+    position: fixed;
+    top: 60px;
+    right: 15px;
+    width: 280px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    z-index: 999;
+    padding: 15px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.profile-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+}
+
+.profile-details {
+    flex: 1;
+}
+
+.profile-name {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 16px;
+}
+
+.admin-badge-mini {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    margin-left: 5px;
+}
+
+.profile-status {
+    font-size: 12px;
+    color: var(--success-color);
+    margin-top: 3px;
+}
+
+.profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.profile-action-btn {
+    background: var(--bg-tertiary);
+    border: none;
+    color: var(--text-color);
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.profile-action-btn:hover {
+    background: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.profile-action-btn.logout {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger-color);
+}
+
+.profile-action-btn.logout:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* Sidebar Overlay */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* Chat Item Improvements */
+.chat-item {
+    position: relative;
+}
+
+.chat-avatar i {
+    font-size: 18px;
+}
+
+.group-menu-btn {
+    font-size: 18px !important;
+    padding: 5px !important;
+}
+
+.leave-channel-btn {
+    font-size: 18px !important;
+    padding: 5px !important;
+}
+
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 65px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    z-index: 997;
+    padding: 8px 15px;
+}
+
+.bottom-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+    font-size: 11px;
+}
+
+.bottom-nav-item:hover,
+.bottom-nav-item.active {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+}
+
+.bottom-nav-item i {
+    font-size: 20px;
+}
+
+/* Message Input Mobile Optimization */
+.message-input-container {
+    padding: 12px;
+}
+
+.message-input {
+    padding: 12px 15px;
+    font-size: 16px; /* Prevents zoom on iOS */
+}
+
+.send-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+}
+
+/* Modal Mobile Optimization */
+.modal-content {
+    margin: 20px auto;
+    width: 95%;
+    max-width: 95%;
+    padding: 20px;
+}
+
+.modal-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+}
+
+/* Reaction Picker Mobile */
+.reaction-picker {
+    padding: 10px;
+}
+
+.reaction-emoji {
+    font-size: 28px;
+    padding: 8px;
+}
+
+/* Welcome Message Mobile */
+.welcome-message {
+    padding: 40px 15px;
+}
+
+.welcome-message h2 {
+    font-size: 24px;
+}
+
+/* Admin Panel Mobile */
+.admin-section {
+    padding: 12px;
+}
+
+.action-btn {
+    padding: 12px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Scrollbar Mobile */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+/* Hide elements on mobile */
+.mobile-hidden {
+    display: none;
+}
+
+/* Show elements on mobile */
+.mobile-only {
+    display: none;
+}
+
+/* Tablet/Mobile Breakpoint */
+@media (max-width: 768px) {
+    .mobile-header {
+        display: flex;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -350px;
+        top: 0;
+        bottom: 0;
+        width: 300px;
+        z-index: 999;
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow);
+    }
+
+    .sidebar.active {
+        left: 0;
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    .messenger-container {
+        padding-top: 60px;
+    }
+
+    .chat-area {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+    .messages-container {
+        padding: 15px;
+    }
+
+    .message {
+        max-width: 85%;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .chat-header {
+        padding: 15px;
+    }
+
+    .chat-title {
+        font-size: 18px;
+    }
+
+    /* Hide sidebar actions on mobile, show in menu instead */
+    .sidebar-actions.mobile-hidden {
+        display: none;
+    }
+
+    /* Show bottom nav on mobile */
+    .mobile-bottom-nav {
+        display: block;
+    }
+
+    /* Adjust chat area for bottom nav */
+    .chat-area {
+        bottom: 65px;
+    }
+
+    /* Optimize modals for mobile */
+    .modal-content {
+        margin: 15% auto;
+        padding: 20px;
+    }
+
+    /* Better touch targets */
+    .chat-item {
+        padding: 15px;
+    }
+
+    .chat-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+
+    /* Improve button accessibility */
+    .send-btn,
+    .action-btn,
+    .modal-btn {
+        min-height: 44px;
+    }
+
+    /* Prevent text zoom on double tap */
+    * {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    /* Smooth scrolling */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Disable pull-to-refresh on mobile */
+    body {
+        overscroll-behavior-y: contain;
+    }
+}
+
+/* Small phones */
+@media (max-width: 400px) {
+    .mobile-header {
+        padding: 0 10px;
+    }
+
+    .mobile-logo {
+        font-size: 18px;
+    }
+
+    .message {
+        max-width: 90%;
+    }
+
+    .profile-dropdown {
+        width: 260px;
+        right: 10px;
+    }
+}
+
+/* Landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    .mobile-header {
+        height: 50px;
+    }
+
+    .chat-area {
+        top: 50px;
+    }
+
+    .messages-container {
+        padding: 10px;
+    }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .chat-item:hover {
+        border: 1px solid var(--primary-color);
+    }
+
+    .message.sent {
+        border: 2px solid var(--primary-color);
+    }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
