@@ -1,0 +1,61 @@
+/* Complete fix for all interface issues */
+
+/* 1. Force show chat lists on mobile */
+@media (max-width: 768px) {
+    .chat-list-container,
+    .chat-list-section,
+    #contactsList,
+    #groupsList,
+    #channelsList,
+    .chat-list-item {
+        display: block !important;
+    }
+    
+    .chat-list-item {
+        display: flex !important;
+    }
+}
+
+/* 2. Fix side menu scrolling */
+.side-menu {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-height: 100vh;
+}
+
+.side-menu-section {
+    padding: 10px 0;
+}
+
+/* 3. Back button styles for ALL devices */
+.back-btn {
+    background: none !important;
+    border: none !important;
+    color: var(--text-color) !important;
+    font-size: 20px !important;
+    cursor: pointer !important;
+    margin-right: 12px !important;
+    padding: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    transition: all 0.3s ease !important;
+}
+
+.back-btn:hover {
+    background: var(--bg-tertiary) !important;
+}
+
+/* 4. Ensure hamburger works on desktop */
+@media (min-width: 769px) {
+    .hamburger-main {
+        display: flex !important;
+    }
+    
+    .sidebar {
+        margin-left: 80px;
+    }
+}
