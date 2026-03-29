@@ -362,18 +362,14 @@
         }
         
         // Open chat (unified for all types)
-        function openChat(name) {
+        async function openChat(name) {
             const chatListContainer = document.getElementById('chatListContainer');
             if (chatListContainer) {
                 chatListContainer.style.display = 'none';
             }
             
-            // Call original messenger.js function
-            if (typeof window.messengerOpenChat === 'function') {
-                window.messengerOpenChat(name);
-            } else if (typeof openChat === 'function') {
-                openChat(name);
-            }
+            // Call the REAL openChat from messenger.js
+            await window.messengerOpenChat(name);
             
             const header = document.getElementById('chatHeader');
             if (header) {
@@ -452,6 +448,16 @@
         function logout() {
             window.location.href = '/logout';
         }
+        
+        // Initialize - store reference to messenger.js openChat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for messenger.js to load
+            setTimeout(function() {
+                if (typeof window.openChat === 'function') {
+                    window.messengerOpenChat = window.openChat;
+                }
+            }, 100);
+        });
     </script>
 </body>
 </html>
