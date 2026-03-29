@@ -351,5 +351,72 @@
     
     <script src="{{ url_for('static', filename='js/messenger.js') }}"></script>
     <script src="{{ url_for('static', filename='js/interface-fix.js') }}"></script>
+    <script>
+        // Show/hide hamburger based on current view
+        function updateHamburgerVisibility() {
+            const mobileHeader = document.querySelector('.mobile-header');
+            const chatListContainer = document.getElementById('chatListContainer');
+            
+            if (mobileHeader && chatListContainer) {
+                // Show hamburger only when chat list is visible
+                if (chatListContainer.style.display !== 'none') {
+                    mobileHeader.style.display = 'flex';
+                } else {
+                    mobileHeader.style.display = 'none';
+                }
+            }
+        }
+        
+        // Override openChat to hide hamburger
+        const originalOpenChat = window.openChat || function() {};
+        window.openChat = function(name) {
+            originalOpenChat(name);
+            setTimeout(updateHamburgerVisibility, 100);
+        };
+        
+        // Override openGroup and openChannel
+        const originalOpenGroup = window.openGroup || function() {};
+        window.openGroup = function(id, name) {
+            originalOpenGroup(id, name);
+            setTimeout(updateHamburgerVisibility, 100);
+        };
+        
+        const originalOpenChannel = window.openChannel || function() {};
+        window.openChannel = function(id, name) {
+            originalOpenChannel(id, name);
+            setTimeout(updateHamburgerVisibility, 100);
+        };
+        
+        // Add back button functionality that shows hamburger when back is pressed
+        function goBackToChatList() {
+            const chatListContainer = document.getElementById('chatListContainer');
+            const messageInputContainer = document.getElementById('messageInputContainer');
+            const messagesContainer = document.getElementById('messagesContainer');
+            const header = document.getElementById('chatHeader');
+            
+            if (chatListContainer) chatListContainer.style.display = 'block';
+            if (messageInputContainer) messageInputContainer.style.display = 'none';
+            
+            if (header) {
+                header.innerHTML = '<div class="chat-title">Select a chat to start messaging</div>';
+            }
+            
+            if (messagesContainer) {
+                messagesContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>Welcome to Anongram! 🔐</h2>
+                        <p>Select a contact, group, or channel to start messaging.</p>
+                    </div>
+                `;
+            }
+            
+            updateHamburgerVisibility();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateHamburgerVisibility();
+        });
+    </script>
 </body>
 </html>
