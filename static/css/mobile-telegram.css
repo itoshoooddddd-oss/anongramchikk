@@ -523,6 +523,8 @@
         left: 0;
         right: 0;
         bottom: 0;
+        background: var(--bg-primary);
+        z-index: 100;
     }
 
     /* Hide desktop sidebar on mobile */
@@ -530,9 +532,12 @@
         display: none !important;
     }
 
-    /* Show mobile chat list */
+    /* Show mobile chat list - Telegram style */
     .chat-list-container {
         display: block !important;
+        height: 100%;
+        overflow-y: auto;
+        background: var(--bg-secondary);
     }
 
     /* Ensure chat sections are visible */
