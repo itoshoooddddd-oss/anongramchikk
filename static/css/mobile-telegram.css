@@ -548,7 +548,7 @@
         display: none;
     }
 
-    /* Show chat area when active */
+    /* Show chat area when active - FULL SCREEN, no chat list visible */
     .chat-area.active {
         display: block !important;
     }

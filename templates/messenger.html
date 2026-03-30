@@ -372,10 +372,19 @@
         window.openChat = function(name) {
             originalOpenChat(name);
             setTimeout(function() {
+                // Hide mobile header
                 const mobileHeader = document.querySelector('.mobile-header');
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
                 }
+                
+                // Hide chat list container
+                const chatListContainer = document.getElementById('chatListContainer');
+                if (chatListContainer) {
+                    chatListContainer.style.display = 'none';
+                }
+                
+                // Show chat area FULL SCREEN
                 const chatArea = document.querySelector('.chat-area');
                 if (chatArea) {
                     chatArea.classList.add('active');
@@ -388,10 +397,19 @@
         window.openGroup = function(id, name) {
             originalOpenGroup(id, name);
             setTimeout(function() {
+                // Hide mobile header
                 const mobileHeader = document.querySelector('.mobile-header');
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
                 }
+                
+                // Hide chat list container
+                const chatListContainer = document.getElementById('chatListContainer');
+                if (chatListContainer) {
+                    chatListContainer.style.display = 'none';
+                }
+                
+                // Show chat area FULL SCREEN
                 const chatArea = document.querySelector('.chat-area');
                 if (chatArea) {
                     chatArea.classList.add('active');
@@ -403,10 +421,19 @@
         window.openChannel = function(id, name) {
             originalOpenChannel(id, name);
             setTimeout(function() {
+                // Hide mobile header
                 const mobileHeader = document.querySelector('.mobile-header');
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
                 }
+                
+                // Hide chat list container
+                const chatListContainer = document.getElementById('chatListContainer');
+                if (chatListContainer) {
+                    chatListContainer.style.display = 'none';
+                }
+                
+                // Show chat area FULL SCREEN
                 const chatArea = document.querySelector('.chat-area');
                 if (chatArea) {
                     chatArea.classList.add('active');
