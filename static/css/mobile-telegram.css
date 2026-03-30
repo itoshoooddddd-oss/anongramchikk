@@ -515,9 +515,30 @@
 
     .messenger-container {
         padding-top: 56px;
+        position: relative;
     }
 
+    /* Mobile chat list - separate container */
+    .chat-list-container {
+        display: block !important;
+        position: fixed;
+        top: 56px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--bg-secondary);
+        overflow-y: auto;
+        z-index: 99;
+    }
+
+    /* Hide desktop sidebar on mobile */
+    .sidebar {
+        display: none !important;
+    }
+
+    /* Chat area - appears when in chat */
     .chat-area {
+        display: none;
         position: fixed;
         top: 56px;
         left: 0;
@@ -527,17 +548,9 @@
         z-index: 100;
     }
 
-    /* Hide desktop sidebar on mobile */
-    .sidebar {
-        display: none !important;
-    }
-
-    /* Show mobile chat list - Telegram style */
-    .chat-list-container {
+    /* Show chat area when chat list is hidden */
+    .chat-list-container[style*="display: none"] + .chat-area {
         display: block !important;
-        height: 100%;
-        overflow-y: auto;
-        background: var(--bg-secondary);
     }
 
     /* Ensure chat sections are visible */
