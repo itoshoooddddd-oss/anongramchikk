@@ -367,7 +367,7 @@
             }
         }
         
-        // Override openChat to hide hamburger
+        // Override openChat to hide hamburger and show chat area
         const originalOpenChat = window.openChat || function() {};
         window.openChat = function(name) {
             originalOpenChat(name);
@@ -375,6 +375,10 @@
                 const mobileHeader = document.querySelector('.mobile-header');
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
+                }
+                const chatArea = document.querySelector('.chat-area');
+                if (chatArea) {
+                    chatArea.classList.add('active');
                 }
             }, 100);
         };
@@ -388,6 +392,10 @@
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
                 }
+                const chatArea = document.querySelector('.chat-area');
+                if (chatArea) {
+                    chatArea.classList.add('active');
+                }
             }, 100);
         };
         
@@ -398,6 +406,10 @@
                 const mobileHeader = document.querySelector('.mobile-header');
                 if (mobileHeader) {
                     mobileHeader.style.display = 'none';
+                }
+                const chatArea = document.querySelector('.chat-area');
+                if (chatArea) {
+                    chatArea.classList.add('active');
                 }
             }, 100);
         };
@@ -429,6 +441,12 @@
             const mobileHeader = document.querySelector('.mobile-header');
             if (mobileHeader) {
                 mobileHeader.style.display = 'flex';
+            }
+            
+            // Hide chat area
+            const chatArea = document.querySelector('.chat-area');
+            if (chatArea) {
+                chatArea.classList.remove('active');
             }
         }
 

@@ -536,9 +536,8 @@
         display: none !important;
     }
 
-    /* Chat area - appears when in chat */
+    /* Chat area - controlled by JS */
     .chat-area {
-        display: none;
         position: fixed;
         top: 56px;
         left: 0;
@@ -546,10 +545,11 @@
         bottom: 0;
         background: var(--bg-primary);
         z-index: 100;
+        display: none;
     }
 
-    /* Show chat area when chat list is hidden */
-    .chat-list-container[style*="display: none"] + .chat-area {
+    /* Show chat area when active */
+    .chat-area.active {
         display: block !important;
     }
 
