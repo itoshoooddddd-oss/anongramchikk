@@ -548,9 +548,11 @@
         display: none;
     }
 
-    /* Show chat area when active - FULL SCREEN, no chat list visible */
+    /* Show chat area when active - FULL SCREEN, NO transparency */
     .chat-area.active {
         display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
     }
 
     /* Ensure chat sections are visible */
@@ -566,6 +568,12 @@
 
     .chat-list-item {
         display: flex !important;
+    }
+
+    /* Chat area elements - ensure no transparency */
+    .chat-area.active .messages-container {
+        background: var(--bg-primary);
+        opacity: 1;
     }
 
     /* Hide elements on mobile */
